@@ -18,6 +18,7 @@ type Product = {
   price: number;
   discount_price: number | null;
   image_url: string | null;
+  images: string[] | null;
   category_slug: string;
   stock: number;
   featured: boolean;
@@ -31,7 +32,7 @@ const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-"
 
 const empty: Partial<Product> = {
   name: "", slug: "", description: "", price: 0, discount_price: null, image_url: "",
-  category_slug: "", stock: 0, featured: false, hot_deal: false, features: [],
+  images: [], category_slug: "", stock: 0, featured: false, hot_deal: false, features: [],
 };
 
 function AdminProducts() {
