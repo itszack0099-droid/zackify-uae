@@ -232,27 +232,42 @@ function AdminProducts() {
               <Field label="Slug">
                 <input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inp} />
               </Field>
-              <Field label="Product Image">
-                <div className="flex items-start gap-3">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden bg-secondary border border-gold/20 shrink-0 flex items-center justify-center">
-                    {editing.image_url ? (
-                      <img src={editing.image_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-7 h-7 text-muted-foreground/50" />
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) uploadImage(f);
-                        e.target.value = "";
-                      }}
-                    />
+              <Field label="Product Images (first one is the cover)">
+                <div className="space-y-3">
+                  {(editing.images?.length ?? 0) > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {(editing.images ?? []).map((url, idx) => (
+                        <div key={`${url}-${idx}`} className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square">
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          {idx === 0 && (
+                            <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">Cover</span>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-black/60 opacity-0 group-hover:opacity-100 transition">
+                            <div className="flex gap-1">
+                              <button type="button" onClick={() => moveImage(idx, -1)} disabled={idx === 0} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">←</button>
+                              <button type="button" onClick={() => moveImage(idx, 1)} disabled={idx === (editing.images?.length ?? 0) - 1} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">→</button>
+                            </div>
+                            <button type="button" onClick={() => removeImageAt(idx)} className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground">
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const fs = e.target.files;
+                      if (fs && fs.length) uploadImages(fs);
+                      e.target.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -260,19 +275,13 @@ function AdminProducts() {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold disabled:opacity-60"
                     >
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {uploading ? "Uploading..." : editing.image_url ? "Replace image" : "Upload image"}
+                      {uploading ? "Uploading..." : (editing.images?.length ?? 0) > 0 ? "Add more images" : "Upload images"}
                     </button>
-                    {editing.image_url && (
-                      <button
-                        type="button"
-                        onClick={() => setEditing({ ...editing, image_url: "" })}
-                        className="block text-xs text-muted-foreground hover:text-destructive"
-                      >
-                        Remove image
-                      </button>
+                    {(editing.images?.length ?? 0) === 0 && (
+                      <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
                     )}
-                    <p className="text-[11px] text-muted-foreground">PNG/JPG/WEBP, max 5 MB</p>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">Upload multiple images for the product carousel. PNG/JPG/WEBP, max 5 MB each.</p>
                 </div>
               </Field>
               <Field label="Description">
