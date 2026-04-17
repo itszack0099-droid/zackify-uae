@@ -56,7 +56,12 @@ function AdminProducts() {
   useEffect(() => { load(); }, []);
 
   const startNew = () => { setEditing(empty); setFeaturesStr(""); };
-  const startEdit = (p: Product) => { setEditing(p); setFeaturesStr((p.features ?? []).join("\n")); };
+  const startEdit = (p: Product) => {
+    // Backfill images from legacy image_url so the gallery UI works for old products
+    const images = (p.images && p.images.length > 0) ? p.images : (p.image_url ? [p.image_url] : []);
+    setEditing({ ...p, images });
+    setFeaturesStr((p.features ?? []).join("\n"));
+  };
 
   const uploadImages = async (files: FileList | File[]) => {
     if (!editing) return;
