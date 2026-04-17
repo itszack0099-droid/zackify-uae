@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
 import { useCart, formatAED } from "@/lib/cart";
-import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, Banknote } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
@@ -81,8 +81,8 @@ function CartPage() {
             >
               Proceed to Checkout <ArrowRight className="w-4 h-4" />
             </Link>
-            <p className="text-xs text-center text-muted-foreground">
-              💵 Cash on Delivery available
+            <p className="text-xs text-center text-muted-foreground inline-flex items-center justify-center gap-1.5 w-full">
+              <Banknote className="w-3.5 h-3.5 text-gold" /> Cash on Delivery available
             </p>
           </aside>
         </div>

@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout";
 import { ProductCard, type ProductLite } from "@/components/ProductCard";
 import { Countdown } from "@/components/Countdown";
 import { supabase } from "@/integrations/supabase/client";
+import { Flame } from "lucide-react";
 
 export const Route = createFileRoute("/hot-deals")({
   component: HotDealsPage,
@@ -36,7 +37,7 @@ function HotDealsPage() {
     <Layout>
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center mb-10 animate-fade-in-up">
-          <div className="text-xs text-gold uppercase tracking-widest mb-2">🔥 Limited Time</div>
+          <div className="text-xs text-gold uppercase tracking-widest mb-2 inline-flex items-center gap-1.5"><Flame className="w-3.5 h-3.5" /> Limited Time</div>
           <h1 className="font-display text-4xl md:text-5xl mb-3">Hot Deals</h1>
           <p className="text-muted-foreground">Premium gear at unbeatable prices — while stocks last</p>
           {deals[0]?.deal_ends_at && (

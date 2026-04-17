@@ -21,7 +21,7 @@ export function Footer() {
     if (error && !error.message.includes("duplicate")) {
       toast.error("Could not subscribe. Try again.");
     } else {
-      toast.success("Subscribed! Welcome to Zackify.uae 🎉");
+      toast.success("Subscribed! Welcome to Zackify.uae");
       setEmail("");
     }
   };

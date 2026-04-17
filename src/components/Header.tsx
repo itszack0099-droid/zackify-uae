@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { ShoppingBag, Search, Menu, X, Phone, Heart, User } from "lucide-react";
+import { ShoppingBag, Search, Menu, X, Phone, Heart, User, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
@@ -43,7 +43,7 @@ export function Header() {
     >
       {/* Top bar */}
       <div className="hidden md:flex items-center justify-between px-6 py-1.5 text-xs text-muted-foreground border-b border-gold/10">
-        <span>✨ Premium gear for men in UAE — Cash on Delivery</span>
+        <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-gold" /> Premium gear for men in UAE — Cash on Delivery</span>
         <a href="https://wa.me/971500000000" className="flex items-center gap-1.5 hover:text-gold transition-colors">
           <Phone className="w-3 h-3" /> WhatsApp Support
         </a>

@@ -84,6 +84,13 @@ function CheckoutPage() {
       toast.error("Could not place your order. Please try again.");
       return;
     }
+    // Remember this order locally so the customer can see it in /account/orders
+    try {
+      const raw = localStorage.getItem("zackify_my_orders_v1");
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      if (!list.includes(data.order_number)) list.unshift(data.order_number);
+      localStorage.setItem("zackify_my_orders_v1", JSON.stringify(list.slice(0, 100)));
+    } catch {}
     clear();
     navigate({ to: "/order-success", search: { num: data.order_number } });
   };
