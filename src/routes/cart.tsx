@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
 import { useCart, formatAED } from "@/lib/cart";
-import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, Banknote } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
