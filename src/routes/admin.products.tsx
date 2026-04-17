@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit2, Trash2, X } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 
@@ -40,6 +40,8 @@ function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [featuresStr, setFeaturesStr] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const [p, c] = await Promise.all([
@@ -54,6 +56,35 @@ function AdminProducts() {
 
   const startNew = () => { setEditing(empty); setFeaturesStr(""); };
   const startEdit = (p: Product) => { setEditing(p); setFeaturesStr((p.features ?? []).join("\n")); };
+
+  const uploadImage = async (file: File) => {
+    if (!editing) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type,
+    });
+    if (upErr) {
+      setUploading(false);
+      toast.error(upErr.message);
+      return;
+    }
+    const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+    setEditing({ ...editing, image_url: data.publicUrl });
+    setUploading(false);
+    toast.success("Image uploaded");
+  };
 
   const save = async () => {
     if (!editing?.name || !editing.category_slug || !editing.price) {
@@ -165,9 +196,48 @@ function AdminProducts() {
               <Field label="Slug">
                 <input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inp} />
               </Field>
-              <Field label="Image URL">
-                <input value={editing.image_url ?? ""} onChange={(e) => setEditing({ ...editing, image_url: e.target.value })} className={inp} />
-                {editing.image_url && <img src={editing.image_url} alt="" className="mt-2 w-24 h-24 rounded-lg object-cover" />}
+              <Field label="Product Image">
+                <div className="flex items-start gap-3">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden bg-secondary border border-gold/20 shrink-0 flex items-center justify-center">
+                    {editing.image_url ? (
+                      <img src={editing.image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-7 h-7 text-muted-foreground/50" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadImage(f);
+                        e.target.value = "";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold disabled:opacity-60"
+                    >
+                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploading ? "Uploading..." : editing.image_url ? "Replace image" : "Upload image"}
+                    </button>
+                    {editing.image_url && (
+                      <button
+                        type="button"
+                        onClick={() => setEditing({ ...editing, image_url: "" })}
+                        className="block text-xs text-muted-foreground hover:text-destructive"
+                      >
+                        Remove image
+                      </button>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">PNG/JPG/WEBP, max 5 MB</p>
+                  </div>
+                </div>
               </Field>
               <Field label="Description">
                 <textarea rows={3} value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className={inp} />
