@@ -86,6 +86,17 @@ function ProductPage() {
     toast.success("Added to cart", { description: `${qty} × ${product.name}` });
   };
 
+  const handleBuyNow = () => {
+    add({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: final,
+      image: product.image_url || "",
+    }, qty);
+    navigate({ to: "/checkout" });
+  };
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-6 py-10">
