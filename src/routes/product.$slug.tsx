@@ -205,11 +205,19 @@ function ProductPage() {
               </div>
               <button
                 onClick={handleAdd}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full glass border-2 border-gold text-gold font-semibold hover:bg-gold/10 transition-colors"
               >
                 <ShoppingBag className="w-5 h-5" /> Add to Cart
               </button>
             </div>
+
+            {/* Buy Now */}
+            <button
+              onClick={handleBuyNow}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-gradient-gold text-deep-green font-bold text-base shadow-gold hover:scale-[1.01] transition-transform"
+            >
+              <Zap className="w-5 h-5" /> Buy Now — Instant Checkout
+            </button>
 
             {/* Returns */}
             <div className="glass rounded-2xl p-4 flex items-start gap-3">
