@@ -31,7 +31,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const toggle = async (productId: string, productName?: string) => {
+  const toggle = async (productId: string, productName?: string): Promise<void> => {
     if (!user) {
       toast.error("Please sign in to save items", {
         description: "Create a free account to build your wishlist",
@@ -41,12 +41,12 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }
     if (ids.has(productId)) {
       const { error } = await supabase.from("wishlists").delete().eq("user_id", user.id).eq("product_id", productId);
-      if (error) return toast.error("Could not remove from wishlist");
+      if (error) { toast.error("Could not remove from wishlist"); return; }
       setIds((s) => { const n = new Set(s); n.delete(productId); return n; });
       toast.success("Removed from wishlist");
     } else {
       const { error } = await supabase.from("wishlists").insert({ user_id: user.id, product_id: productId });
-      if (error) return toast.error("Could not save to wishlist");
+      if (error) { toast.error("Could not save to wishlist"); return; }
       setIds((s) => new Set(s).add(productId));
       toast.success("Saved to wishlist", { description: productName });
     }

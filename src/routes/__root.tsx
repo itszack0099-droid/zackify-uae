@@ -1,6 +1,8 @@
 import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { CartProvider } from "@/lib/cart";
+import { AuthProvider } from "@/lib/auth";
+import { WishlistProvider } from "@/lib/wishlist";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createRootRoute({
@@ -21,7 +23,6 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Zackify.uae — Premium Gear for Men in UAE" },
-      { name: "description", content: "Zackify.uae is a premium e-commerce website for masculine UAE style." },
       { name: "twitter:description", content: "Zackify.uae is a premium e-commerce website for masculine UAE style." },
     ],
     links: [
@@ -55,10 +56,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <CartProvider>
-      <Outlet />
-      <Toaster />
-    </CartProvider>
+    <AuthProvider>
+      <WishlistProvider>
+        <CartProvider>
+          <Outlet />
+          <Toaster />
+        </CartProvider>
+      </WishlistProvider>
+    </AuthProvider>
   );
 }
 
