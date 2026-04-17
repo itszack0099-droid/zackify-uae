@@ -58,39 +58,73 @@ function AdminProducts() {
   const startNew = () => { setEditing(empty); setFeaturesStr(""); };
   const startEdit = (p: Product) => { setEditing(p); setFeaturesStr((p.features ?? []).join("\n")); };
 
-  const uploadImage = async (file: File) => {
+  const uploadImages = async (files: FileList | File[]) => {
     if (!editing) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5MB");
-      return;
-    }
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please choose an image file");
-      return;
-    }
+    const list = Array.from(files);
+    if (!list.length) return;
     setUploading(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type,
-    });
-    if (upErr) {
-      setUploading(false);
-      toast.error(upErr.message);
-      return;
+    const uploaded: string[] = [];
+    for (const file of list) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is over 5MB`);
+        continue;
+      }
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        continue;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+      if (upErr) {
+        toast.error(upErr.message);
+        continue;
+      }
+      const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+      uploaded.push(data.publicUrl);
     }
-    const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
-    setEditing({ ...editing, image_url: data.publicUrl });
+    if (uploaded.length) {
+      const existing = editing.images ?? [];
+      const merged = [...existing, ...uploaded];
+      setEditing({
+        ...editing,
+        images: merged,
+        // Keep image_url in sync with the first image (used in listings/cards)
+        image_url: editing.image_url || merged[0],
+      });
+      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded`);
+    }
     setUploading(false);
-    toast.success("Image uploaded");
+  };
+
+  const removeImageAt = (idx: number) => {
+    if (!editing) return;
+    const next = (editing.images ?? []).filter((_, i) => i !== idx);
+    setEditing({
+      ...editing,
+      images: next,
+      image_url: next[0] ?? "",
+    });
+  };
+
+  const moveImage = (idx: number, dir: -1 | 1) => {
+    if (!editing) return;
+    const arr = [...(editing.images ?? [])];
+    const j = idx + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[idx], arr[j]] = [arr[j], arr[idx]];
+    setEditing({ ...editing, images: arr, image_url: arr[0] ?? editing.image_url });
   };
 
   const save = async () => {
     if (!editing?.name || !editing.category_slug || !editing.price) {
       return toast.error("Name, category and price are required");
     }
+    const imgs = editing.images ?? [];
     const payload = {
       name: editing.name,
       slug: editing.slug || slugify(editing.name),
@@ -98,7 +132,8 @@ function AdminProducts() {
       features: featuresStr.split("\n").map((s) => s.trim()).filter(Boolean),
       price: Number(editing.price),
       discount_price: editing.discount_price ? Number(editing.discount_price) : null,
-      image_url: editing.image_url || null,
+      image_url: editing.image_url || imgs[0] || null,
+      images: imgs,
       category_slug: editing.category_slug,
       stock: Number(editing.stock ?? 0),
       featured: !!editing.featured,
