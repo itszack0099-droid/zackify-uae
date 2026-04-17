@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Star, ShoppingBag } from "lucide-react";
+import { Star, ShoppingBag, Flame } from "lucide-react";
 import { useCart, formatAED } from "@/lib/cart";
 import { toast } from "sonner";
 import { WishlistButton } from "@/components/WishlistButton";
@@ -50,8 +50,8 @@ export function ProductCard({ product }: { product: ProductLite }) {
           </span>
         )}
         {product.hot_deal && (
-          <span className="bg-destructive text-destructive-foreground text-[10px] font-bold px-2.5 py-1 rounded-full">
-            🔥 HOT
+          <span className="inline-flex items-center gap-1 bg-destructive text-destructive-foreground text-[10px] font-bold px-2.5 py-1 rounded-full">
+            <Flame className="w-3 h-3" /> HOT
           </span>
         )}
       </div>

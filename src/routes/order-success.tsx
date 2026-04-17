@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
-import { CheckCircle2, Package, Home } from "lucide-react";
+import { CheckCircle2, Package, Home, Banknote } from "lucide-react";
 import { Layout } from "@/components/Layout";
 
 export const Route = createFileRoute("/order-success")({
@@ -42,8 +42,8 @@ function OrderSuccess() {
           </Link>
         </div>
 
-        <p className="mt-10 text-sm text-muted-foreground">
-          💵 Pay in cash when the order arrives. Our team will call you to confirm.
+        <p className="mt-10 text-sm text-muted-foreground inline-flex items-center justify-center gap-2">
+          <Banknote className="w-4 h-4 text-gold" /> Pay in cash when the order arrives. Our team will call you to confirm.
         </p>
       </div>
     </Layout>

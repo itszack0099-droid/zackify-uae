@@ -81,8 +81,8 @@ function CartPage() {
             >
               Proceed to Checkout <ArrowRight className="w-4 h-4" />
             </Link>
-            <p className="text-xs text-center text-muted-foreground">
-              💵 Cash on Delivery available
+            <p className="text-xs text-center text-muted-foreground inline-flex items-center justify-center gap-1.5 w-full">
+              <Banknote className="w-3.5 h-3.5 text-gold" /> Cash on Delivery available
             </p>
           </aside>
         </div>

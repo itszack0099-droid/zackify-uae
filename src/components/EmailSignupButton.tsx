@@ -22,7 +22,7 @@ export function EmailSignupButton() {
       toast.error("Could not subscribe. Try again.");
       return;
     }
-    toast.success("Subscribed! Welcome to Zackify 🎉");
+    toast.success("Subscribed! Welcome to Zackify");
     setEmail("");
     setOpen(false);
   };

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Mail, Lock, Eye, EyeOff, User as UserIcon, Heart, LogOut } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User as UserIcon, Heart, LogOut, Package } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/account")({
@@ -58,7 +58,10 @@ function AccountPage() {
             <p className="text-sm text-muted-foreground mb-6">{user.email}</p>
 
             <div className="space-y-2">
-              <Link to="/wishlist" className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform">
+              <Link to="/account/orders" className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform">
+                <Package className="w-4 h-4" /> My Orders
+              </Link>
+              <Link to="/wishlist" className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full glass border border-gold/30 hover:border-gold transition-colors">
                 <Heart className="w-4 h-4" /> My Wishlist
               </Link>
               <button
