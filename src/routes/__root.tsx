@@ -17,9 +17,12 @@ export const Route = createRootRoute({
       { name: "author", content: "Zackify.uae" },
       { name: "theme-color", content: "#0B3D2E" },
       { property: "og:title", content: "Zackify.uae — Premium Gear for Men in UAE" },
-      { property: "og:description", content: "Premium gear, Cash on Delivery, 2–4 day shipping in UAE." },
+      { property: "og:description", content: "Zackify.uae is a premium e-commerce website for masculine UAE style." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Zackify.uae — Premium Gear for Men in UAE" },
+      { name: "description", content: "Zackify.uae is a premium e-commerce website for masculine UAE style." },
+      { name: "twitter:description", content: "Zackify.uae is a premium e-commerce website for masculine UAE style." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
