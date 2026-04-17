@@ -27,6 +27,7 @@ type Product = {
 
 function ProductPage() {
   const { slug } = useParams({ from: "/product/$slug" });
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
