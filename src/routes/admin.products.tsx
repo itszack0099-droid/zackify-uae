@@ -18,6 +18,7 @@ type Product = {
   price: number;
   discount_price: number | null;
   image_url: string | null;
+  images: string[] | null;
   category_slug: string;
   stock: number;
   featured: boolean;
@@ -31,7 +32,7 @@ const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-"
 
 const empty: Partial<Product> = {
   name: "", slug: "", description: "", price: 0, discount_price: null, image_url: "",
-  category_slug: "", stock: 0, featured: false, hot_deal: false, features: [],
+  images: [], category_slug: "", stock: 0, featured: false, hot_deal: false, features: [],
 };
 
 function AdminProducts() {
@@ -55,41 +56,80 @@ function AdminProducts() {
   useEffect(() => { load(); }, []);
 
   const startNew = () => { setEditing(empty); setFeaturesStr(""); };
-  const startEdit = (p: Product) => { setEditing(p); setFeaturesStr((p.features ?? []).join("\n")); };
+  const startEdit = (p: Product) => {
+    // Backfill images from legacy image_url so the gallery UI works for old products
+    const images = (p.images && p.images.length > 0) ? p.images : (p.image_url ? [p.image_url] : []);
+    setEditing({ ...p, images });
+    setFeaturesStr((p.features ?? []).join("\n"));
+  };
 
-  const uploadImage = async (file: File) => {
+  const uploadImages = async (files: FileList | File[]) => {
     if (!editing) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5MB");
-      return;
-    }
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please choose an image file");
-      return;
-    }
+    const list = Array.from(files);
+    if (!list.length) return;
     setUploading(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type,
-    });
-    if (upErr) {
-      setUploading(false);
-      toast.error(upErr.message);
-      return;
+    const uploaded: string[] = [];
+    for (const file of list) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is over 5MB`);
+        continue;
+      }
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        continue;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+      if (upErr) {
+        toast.error(upErr.message);
+        continue;
+      }
+      const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+      uploaded.push(data.publicUrl);
     }
-    const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
-    setEditing({ ...editing, image_url: data.publicUrl });
+    if (uploaded.length) {
+      const existing = editing.images ?? [];
+      const merged = [...existing, ...uploaded];
+      setEditing({
+        ...editing,
+        images: merged,
+        // Keep image_url in sync with the first image (used in listings/cards)
+        image_url: editing.image_url || merged[0],
+      });
+      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded`);
+    }
     setUploading(false);
-    toast.success("Image uploaded");
+  };
+
+  const removeImageAt = (idx: number) => {
+    if (!editing) return;
+    const next = (editing.images ?? []).filter((_, i) => i !== idx);
+    setEditing({
+      ...editing,
+      images: next,
+      image_url: next[0] ?? "",
+    });
+  };
+
+  const moveImage = (idx: number, dir: -1 | 1) => {
+    if (!editing) return;
+    const arr = [...(editing.images ?? [])];
+    const j = idx + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[idx], arr[j]] = [arr[j], arr[idx]];
+    setEditing({ ...editing, images: arr, image_url: arr[0] ?? editing.image_url });
   };
 
   const save = async () => {
     if (!editing?.name || !editing.category_slug || !editing.price) {
       return toast.error("Name, category and price are required");
     }
+    const imgs = editing.images ?? [];
     const payload = {
       name: editing.name,
       slug: editing.slug || slugify(editing.name),
@@ -97,7 +137,8 @@ function AdminProducts() {
       features: featuresStr.split("\n").map((s) => s.trim()).filter(Boolean),
       price: Number(editing.price),
       discount_price: editing.discount_price ? Number(editing.discount_price) : null,
-      image_url: editing.image_url || null,
+      image_url: editing.image_url || imgs[0] || null,
+      images: imgs,
       category_slug: editing.category_slug,
       stock: Number(editing.stock ?? 0),
       featured: !!editing.featured,
@@ -196,27 +237,42 @@ function AdminProducts() {
               <Field label="Slug">
                 <input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inp} />
               </Field>
-              <Field label="Product Image">
-                <div className="flex items-start gap-3">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden bg-secondary border border-gold/20 shrink-0 flex items-center justify-center">
-                    {editing.image_url ? (
-                      <img src={editing.image_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-7 h-7 text-muted-foreground/50" />
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) uploadImage(f);
-                        e.target.value = "";
-                      }}
-                    />
+              <Field label="Product Images (first one is the cover)">
+                <div className="space-y-3">
+                  {(editing.images?.length ?? 0) > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {(editing.images ?? []).map((url, idx) => (
+                        <div key={`${url}-${idx}`} className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square">
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          {idx === 0 && (
+                            <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">Cover</span>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-black/60 opacity-0 group-hover:opacity-100 transition">
+                            <div className="flex gap-1">
+                              <button type="button" onClick={() => moveImage(idx, -1)} disabled={idx === 0} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">←</button>
+                              <button type="button" onClick={() => moveImage(idx, 1)} disabled={idx === (editing.images?.length ?? 0) - 1} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">→</button>
+                            </div>
+                            <button type="button" onClick={() => removeImageAt(idx)} className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground">
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const fs = e.target.files;
+                      if (fs && fs.length) uploadImages(fs);
+                      e.target.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -224,19 +280,13 @@ function AdminProducts() {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold disabled:opacity-60"
                     >
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {uploading ? "Uploading..." : editing.image_url ? "Replace image" : "Upload image"}
+                      {uploading ? "Uploading..." : (editing.images?.length ?? 0) > 0 ? "Add more images" : "Upload images"}
                     </button>
-                    {editing.image_url && (
-                      <button
-                        type="button"
-                        onClick={() => setEditing({ ...editing, image_url: "" })}
-                        className="block text-xs text-muted-foreground hover:text-destructive"
-                      >
-                        Remove image
-                      </button>
+                    {(editing.images?.length ?? 0) === 0 && (
+                      <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
                     )}
-                    <p className="text-[11px] text-muted-foreground">PNG/JPG/WEBP, max 5 MB</p>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">Upload multiple images for the product carousel. PNG/JPG/WEBP, max 5 MB each.</p>
                 </div>
               </Field>
               <Field label="Description">
