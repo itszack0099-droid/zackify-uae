@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Star, ShoppingBag } from "lucide-react";
 import { useCart, formatAED } from "@/lib/cart";
 import { toast } from "sonner";
+import { WishlistButton } from "@/components/WishlistButton";
 
 export type ProductLite = {
   id: string;
@@ -54,6 +55,15 @@ export function ProductCard({ product }: { product: ProductLite }) {
           </span>
         )}
       </div>
+
+      {/* Wishlist heart */}
+      <WishlistButton
+        productId={product.id}
+        productName={product.name}
+        className="absolute top-3 right-3 z-10 w-9 h-9"
+        size={16}
+      />
+
 
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-secondary/30">
