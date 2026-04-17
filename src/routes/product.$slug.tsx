@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart, formatAED } from "@/lib/cart";
-import { Star, Minus, Plus, ShoppingBag, Banknote, Truck, RefreshCcw, ShieldCheck, Check } from "lucide-react";
+import { Star, Minus, Plus, ShoppingBag, Banknote, Truck, RefreshCcw, ShieldCheck, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/product/$slug")({
