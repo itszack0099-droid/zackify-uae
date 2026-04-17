@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart, formatAED } from "@/lib/cart";
-import { Star, Minus, Plus, ShoppingBag, Banknote, Truck, RefreshCcw, ShieldCheck, Check } from "lucide-react";
+import { Star, Minus, Plus, ShoppingBag, Banknote, Truck, RefreshCcw, ShieldCheck, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/product/$slug")({
@@ -27,6 +27,7 @@ type Product = {
 
 function ProductPage() {
   const { slug } = useParams({ from: "/product/$slug" });
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
@@ -83,6 +84,17 @@ function ProductPage() {
       image: product.image_url || "",
     }, qty);
     toast.success("Added to cart", { description: `${qty} × ${product.name}` });
+  };
+
+  const handleBuyNow = () => {
+    add({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: final,
+      image: product.image_url || "",
+    }, qty);
+    navigate({ to: "/checkout" });
   };
 
   return (
@@ -193,11 +205,19 @@ function ProductPage() {
               </div>
               <button
                 onClick={handleAdd}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full glass border-2 border-gold text-gold font-semibold hover:bg-gold/10 transition-colors"
               >
                 <ShoppingBag className="w-5 h-5" /> Add to Cart
               </button>
             </div>
+
+            {/* Buy Now */}
+            <button
+              onClick={handleBuyNow}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-gradient-gold text-deep-green font-bold text-base shadow-gold hover:scale-[1.01] transition-transform"
+            >
+              <Zap className="w-5 h-5" /> Buy Now — Instant Checkout
+            </button>
 
             {/* Returns */}
             <div className="glass rounded-2xl p-4 flex items-start gap-3">
