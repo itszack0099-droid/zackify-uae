@@ -3,6 +3,7 @@ import appCss from "../styles.css?url";
 import { CartProvider } from "@/lib/cart";
 import { AuthProvider } from "@/lib/auth";
 import { WishlistProvider } from "@/lib/wishlist";
+import { I18nProvider } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createRootRoute({
@@ -60,14 +61,16 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <AuthProvider>
-      <WishlistProvider>
-        <CartProvider>
-          <Outlet />
-          <Toaster />
-        </CartProvider>
-      </WishlistProvider>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <WishlistProvider>
+          <CartProvider>
+            <Outlet />
+            <Toaster />
+          </CartProvider>
+        </WishlistProvider>
+      </AuthProvider>
+    </I18nProvider>
   );
 }
 

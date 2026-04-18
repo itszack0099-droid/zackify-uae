@@ -4,22 +4,26 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useWishlist } from "@/lib/wishlist";
+import { useI18n, type StringKey } from "@/lib/i18n";
 import { EmailSignupButton } from "@/components/EmailSignupButton";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { WHATSAPP_URL } from "@/lib/contact";
 
-const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/category/car-accessories", label: "Car Accessories" },
-  { to: "/category/gym-fitness", label: "Gym & Fitness" },
-  { to: "/category/phone-accessories", label: "Phone Accessories" },
-  { to: "/hot-deals", label: "Hot Deals" },
-  { to: "/track-order", label: "Track Order" },
-  { to: "/contact", label: "Contact" },
-] as const;
+const NAV: { to: string; key: StringKey }[] = [
+  { to: "/", key: "nav.home" },
+  { to: "/category/car-accessories", key: "nav.car" },
+  { to: "/category/gym-fitness", key: "nav.gym" },
+  { to: "/category/phone-accessories", key: "nav.phone" },
+  { to: "/hot-deals", key: "nav.deals" },
+  { to: "/track-order", key: "nav.track" },
+  { to: "/contact", key: "nav.contact" },
+];
 
 export function Header() {
   const { count } = useCart();
   const { user } = useAuth();
   const { ids: wishlistIds } = useWishlist();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [search, setSearch] = useState("");
@@ -43,9 +47,9 @@ export function Header() {
     >
       {/* Top bar */}
       <div className="hidden md:flex items-center justify-between px-6 py-1.5 text-xs text-muted-foreground border-b border-gold/10">
-        <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-gold" /> Premium gear for men in UAE — Cash on Delivery</span>
-        <a href="https://wa.me/971500000000" className="flex items-center gap-1.5 hover:text-gold transition-colors">
-          <Phone className="w-3 h-3" /> WhatsApp Support
+        <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-gold" /> {t("header.tagline")}</span>
+        <a href={WHATSAPP_URL} target="_blank" rel="noopener" className="flex items-center gap-1.5 hover:text-gold transition-colors">
+          <Phone className="w-3 h-3" /> {t("header.whatsapp")}
         </a>
       </div>
 
@@ -71,13 +75,14 @@ export function Header() {
               activeProps={{ className: "text-gold" }}
               activeOptions={{ exact: item.to === "/" }}
             >
-              {item.label}
+              {t(item.key)}
             </Link>
           ))}
         </nav>
 
         {/* Actions */}
         <div className="flex items-center gap-1 sm:gap-2">
+          <LanguageToggle />
           <EmailSignupButton />
           <button
             onClick={() => setShowSearch((s) => !s)}
@@ -87,7 +92,9 @@ export function Header() {
             <Search className="w-5 h-5" />
           </button>
           <a
-            href="https://wa.me/971500000000"
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener"
             className="hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-[#25D366]/15 text-[#25D366] hover:bg-[#25D366] hover:text-white transition-all"
             aria-label="WhatsApp"
           >
@@ -98,7 +105,7 @@ export function Header() {
           <Link
             to="/wishlist"
             className="relative p-2 rounded-full hover:bg-gold/10 hover:text-gold transition-colors"
-            aria-label="Wishlist"
+            aria-label={t("common.wishlist")}
           >
             <Heart className="w-5 h-5" />
             {user && wishlistIds.size > 0 && (
@@ -110,14 +117,14 @@ export function Header() {
           <Link
             to="/account"
             className="p-2 rounded-full hover:bg-gold/10 hover:text-gold transition-colors"
-            aria-label="Account"
+            aria-label={t("common.account")}
           >
             <User className="w-5 h-5" />
           </Link>
           <Link
             to="/cart"
             className="relative p-2 rounded-full hover:bg-gold/10 hover:text-gold transition-colors"
-            aria-label="Cart"
+            aria-label={t("common.cart")}
           >
             <ShoppingBag className="w-5 h-5" />
             {count > 0 && (
@@ -129,7 +136,7 @@ export function Header() {
           <button
             onClick={() => setOpen((o) => !o)}
             className="lg:hidden p-2 rounded-full hover:bg-gold/10 hover:text-gold transition-colors"
-            aria-label="Menu"
+            aria-label={t("common.menu")}
           >
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -148,13 +155,13 @@ export function Header() {
             }}
             className="max-w-2xl mx-auto relative"
           >
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search premium gear..."
-              className="w-full bg-card/50 border border-gold/20 rounded-full pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition"
+              placeholder={t("header.search")}
+              className="w-full bg-card/50 border border-gold/20 rounded-full pl-11 pr-4 rtl:pl-4 rtl:pr-11 py-2.5 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition"
             />
           </form>
         </div>
@@ -168,11 +175,11 @@ export function Header() {
               <Link
                 key={item.to}
                 to={item.to}
-                className="px-6 py-3 text-sm font-medium border-l-2 border-transparent hover:border-gold hover:bg-gold/5 hover:text-gold transition-all"
+                className="px-6 py-3 text-sm font-medium border-l-2 rtl:border-l-0 rtl:border-r-2 border-transparent hover:border-gold hover:bg-gold/5 hover:text-gold transition-all"
                 activeProps={{ className: "text-gold border-gold bg-gold/5" }}
                 activeOptions={{ exact: item.to === "/" }}
               >
-                {item.label}
+                {t(item.key)}
               </Link>
             ))}
           </nav>

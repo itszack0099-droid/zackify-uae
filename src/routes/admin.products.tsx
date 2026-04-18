@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
+import { squareCompress } from "@/lib/imageCompress";
 
 export const Route = createFileRoute("/admin/products")({
   component: AdminProducts,
@@ -69,21 +70,29 @@ function AdminProducts() {
     if (!list.length) return;
     setUploading(true);
     const uploaded: string[] = [];
-    for (const file of list) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} is over 5MB`);
+    for (const raw of list) {
+      if (!raw.type.startsWith("image/")) {
+        toast.error(`${raw.name} is not an image`);
         continue;
       }
-      if (!file.type.startsWith("image/")) {
-        toast.error(`${file.name} is not an image`);
+      if (raw.size > 20 * 1024 * 1024) {
+        toast.error(`${raw.name} is over 20MB`);
         continue;
       }
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, file, {
+      let processed: File;
+      try {
+        // Auto-crop to square + compress under 300KB
+        processed = await squareCompress(raw, { maxBytes: 300 * 1024, size: 1200, mime: "image/jpeg" });
+        console.log(`[upload] ${raw.name}: ${(raw.size / 1024).toFixed(0)}KB → ${(processed.size / 1024).toFixed(0)}KB`);
+      } catch (err) {
+        console.error("Image compression failed, uploading original:", err);
+        processed = raw;
+      }
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, processed, {
         cacheControl: "3600",
         upsert: false,
-        contentType: file.type,
+        contentType: processed.type,
       });
       if (upErr) {
         toast.error(upErr.message);
@@ -101,7 +110,7 @@ function AdminProducts() {
         // Keep image_url in sync with the first image (used in listings/cards)
         image_url: editing.image_url || merged[0],
       });
-      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded`);
+      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded — auto-cropped & compressed`);
     }
     setUploading(false);
   };
@@ -303,7 +312,7 @@ function AdminProducts() {
                       <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Upload multiple images for the product carousel. PNG/JPG/WEBP, max 5 MB each.</p>
+                  <p className="text-[11px] text-muted-foreground">Upload multiple images for the product carousel. Photos are auto-cropped to square and compressed under 300 KB before saving.</p>
                 </div>
               </Field>
               <Field label="Description">
