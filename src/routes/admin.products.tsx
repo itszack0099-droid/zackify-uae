@@ -145,20 +145,37 @@ function AdminProducts() {
       hot_deal: !!editing.hot_deal,
       deal_ends_at: editing.deal_ends_at || null,
     };
-    const { error } = editing.id
-      ? await supabase.from("products").update(payload).eq("id", editing.id)
-      : await supabase.from("products").insert(payload);
-    if (error) return toast.error(error.message);
-    toast.success(editing.id ? "Product updated" : "Product created");
+    const query = editing.id
+      ? supabase.from("products").update(payload).eq("id", editing.id).select()
+      : supabase.from("products").insert(payload).select();
+    const { data, error } = await query;
+    if (error) {
+      console.error("Product save failed:", error);
+      return toast.error(error.message);
+    }
+    if (!data || data.length === 0) {
+      console.error("Product save returned 0 rows — likely blocked by permissions (RLS).");
+      return toast.error("Save was blocked. Your account may not have admin permissions.");
+    }
+    console.log(editing.id ? "Product updated in database:" : "Product saved to database:", data[0]);
+    toast.success(editing.id ? "Product updated successfully" : "Product added successfully");
     setEditing(null);
     load();
   };
 
   const remove = async (id: string) => {
     if (!confirm("Delete this product?")) return;
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Deleted");
+    const { data, error } = await supabase.from("products").delete().eq("id", id).select();
+    if (error) {
+      console.error("Product delete failed:", error);
+      return toast.error(error.message);
+    }
+    if (!data || data.length === 0) {
+      console.error("Delete returned 0 rows — likely blocked by permissions (RLS).");
+      return toast.error("Delete was blocked. Your account may not have admin permissions.");
+    }
+    console.log("Product deleted from database:", id);
+    toast.success("Product deleted successfully");
     setItems((p) => p.filter((x) => x.id !== id));
   };
 
