@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Mail, Truck, ShieldCheck, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { WHATSAPP_URL } from "@/lib/contact";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -86,7 +87,7 @@ export function Footer() {
           <ul className="space-y-2 text-sm text-foreground/70">
             <li><Link to="/track-order" className="hover:text-gold transition-colors">Track Order</Link></li>
             <li><Link to="/contact" className="hover:text-gold transition-colors">Contact Us</Link></li>
-            <li><a href="https://wa.me/971500000000" className="hover:text-gold transition-colors">WhatsApp</a></li>
+            <li><a href={WHATSAPP_URL} target="_blank" rel="noopener" className="hover:text-gold transition-colors">WhatsApp</a></li>
             <li><Link to="/admin" className="hover:text-gold transition-colors">Admin</Link></li>
           </ul>
         </div>

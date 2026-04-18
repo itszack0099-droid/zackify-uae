@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
 import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { WHATSAPP_URL, WHATSAPP_DISPLAY, PHONE_TEL } from "@/lib/contact";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
@@ -26,8 +27,8 @@ function ContactPage() {
 
         <div className="grid md:grid-cols-2 gap-5 mb-10">
           {[
-            { icon: MessageCircle, title: "WhatsApp", value: "+971 50 000 0000", href: "https://wa.me/971500000000" },
-            { icon: Phone, title: "Phone", value: "+971 50 000 0000", href: "tel:+971500000000" },
+            { icon: MessageCircle, title: "WhatsApp", value: WHATSAPP_DISPLAY, href: WHATSAPP_URL },
+            { icon: Phone, title: "Phone", value: WHATSAPP_DISPLAY, href: `tel:${PHONE_TEL}` },
             { icon: Mail, title: "Email", value: "support@zackify.uae", href: "mailto:support@zackify.uae" },
             { icon: MapPin, title: "Location", value: "Dubai, United Arab Emirates", href: "#" },
           ].map((c, i) => (

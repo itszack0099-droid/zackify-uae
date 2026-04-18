@@ -266,3 +266,12 @@
   from { opacity: 0; transform: scale(0.94); }
   to { opacity: 1; transform: scale(1); }
 }
+@keyframes gallerySheen {
+  0% { transform: translateX(-120%); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+/* RTL — flip directional utilities used in the layout */
+[dir="rtl"] .rtl-flip { transform: scaleX(-1); }
+[dir="rtl"] body { font-family: "Tajawal", "Cairo", var(--font-sans); }
