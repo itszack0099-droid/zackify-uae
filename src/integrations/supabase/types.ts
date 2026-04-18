@@ -60,9 +60,11 @@ export type Database = {
         Row: {
           address: string
           city: string
+          courier_name: string | null
           created_at: string
           customer_name: string
           emirate: string
+          estimated_delivery: string | null
           id: string
           items: Json
           notes: string | null
@@ -72,14 +74,17 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
+          tracking_number: string | null
           updated_at: string
         }
         Insert: {
           address: string
           city: string
+          courier_name?: string | null
           created_at?: string
           customer_name: string
           emirate: string
+          estimated_delivery?: string | null
           id?: string
           items: Json
           notes?: string | null
@@ -89,14 +94,17 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Update: {
           address?: string
           city?: string
+          courier_name?: string | null
           created_at?: string
           customer_name?: string
           emirate?: string
+          estimated_delivery?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -106,6 +114,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           total?: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -273,7 +282,9 @@ export type Database = {
       order_status:
         | "pending"
         | "confirmed"
+        | "processing"
         | "shipped"
+        | "out_for_delivery"
         | "delivered"
         | "cancelled"
     }
@@ -407,7 +418,9 @@ export const Constants = {
       order_status: [
         "pending",
         "confirmed",
+        "processing",
         "shipped",
+        "out_for_delivery",
         "delivered",
         "cancelled",
       ],
