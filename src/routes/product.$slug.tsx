@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
+import { ProductGallery } from "@/components/ProductGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart, formatAED } from "@/lib/cart";
 import { Star, Minus, Plus, ShoppingBag, Banknote, Truck, RefreshCcw, ShieldCheck, Check, Zap } from "lucide-react";
@@ -31,8 +32,6 @@ function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
-  const [activeImg, setActiveImg] = useState(0);
-  const [zoom, setZoom] = useState(false);
   const { add } = useCart();
 
   useEffect(() => {
@@ -40,7 +39,6 @@ function ProductPage() {
     supabase.from("products").select("*").eq("slug", slug).maybeSingle().then(({ data }) => {
       setProduct(data as Product | null);
       setLoading(false);
-      setActiveImg(0);
       setQty(1);
     });
   }, [slug]);
@@ -113,35 +111,8 @@ function ProductPage() {
 
         <div className="grid lg:grid-cols-2 gap-10">
           {/* Images */}
-          <div className="space-y-4 animate-fade-in-up">
-            <div
-              className="relative aspect-square rounded-2xl overflow-hidden glass border border-gold/20 cursor-zoom-in group"
-              onMouseEnter={() => setZoom(true)}
-              onMouseLeave={() => setZoom(false)}
-            >
-              {images[activeImg] && (
-                <img
-                  src={images[activeImg]}
-                  alt={product.name}
-                  className={`w-full h-full object-cover transition-transform duration-500 ${zoom ? "scale-150" : "scale-100"}`}
-                />
-              )}
-            </div>
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImg(i)}
-                    className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                      i === activeImg ? "border-gold shadow-gold" : "border-gold/15 opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="animate-fade-in-up">
+            <ProductGallery images={images} alt={product.name} />
           </div>
 
           {/* Info */}
