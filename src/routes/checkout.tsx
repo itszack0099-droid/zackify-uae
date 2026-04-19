@@ -178,6 +178,7 @@ function CheckoutPage() {
               <Lock className="w-4 h-4" /> {submitting ? "Placing Order..." : "Place Order"}
             </button>
             <p className="text-xs text-center text-muted-foreground">Delivery in 2–4 days across the UAE</p>
+            <p className="text-[11px] text-center text-muted-foreground">3 Days Return Policy — unused & in original packaging</p>
           </aside>
         </form>
       </div>

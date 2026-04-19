@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, redirect, useNavigate } from "@tanstack/
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
-import { LayoutDashboard, ShoppingBag, Package, Tag, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Tag, LogOut, Menu, X, RefreshCcw } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -67,6 +67,7 @@ function AdminLayout() {
           {[
             { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
             { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
+            { to: "/admin/returns", label: "Returns", icon: RefreshCcw },
             { to: "/admin/products", label: "Products", icon: Package },
             { to: "/admin/categories", label: "Categories", icon: Tag },
           ].map((l) => (

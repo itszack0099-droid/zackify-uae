@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, Search, CheckCircle2, Truck, Clock, X, Hash, Phone, Bike, CalendarClock } from "lucide-react";
+import { Package, Search, CheckCircle2, Truck, Clock, X, Hash, Phone, Bike, CalendarClock, RefreshCcw } from "lucide-react";
 import { formatAED } from "@/lib/cart";
 
 export const Route = createFileRoute("/track-order")({
@@ -34,7 +34,13 @@ const LABELS: Record<string, string> = {
   out_for_delivery: "Out for Delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  return_requested: "Return Requested",
+  return_approved: "Return Approved",
+  returned: "Returned",
 };
+
+const RETURN_ELIGIBLE: ReadonlyArray<string> = ["delivered"];
+const RETURN_ACTIVE: ReadonlyArray<string> = ["return_requested", "return_approved", "returned"];
 
 function TrackPage() {
   const search = Route.useSearch();
@@ -75,6 +81,8 @@ function TrackPage() {
 
   const currentStep = order ? STEPS.indexOf(order.status as typeof STEPS[number]) : -1;
   const cancelled = order?.status === "cancelled";
+  const inReturnFlow = order ? RETURN_ACTIVE.includes(order.status) : false;
+  const canRequestReturn = order ? RETURN_ELIGIBLE.includes(order.status) : false;
 
   return (
     <Layout>
@@ -145,6 +153,32 @@ function TrackPage() {
                 {new Date(order.updated_at).toLocaleString("en-AE", { dateStyle: "medium", timeStyle: "short" })}
               </div>
             </div>
+
+            {/* Return CTA */}
+            {(canRequestReturn || inReturnFlow) && (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="font-semibold flex items-center gap-2 text-destructive">
+                    <RefreshCcw className="w-4 h-4" />
+                    {inReturnFlow ? "Return in progress" : "Need to return this order?"}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {inReturnFlow
+                      ? "Our team is processing your return. We'll contact you shortly."
+                      : "Returns are accepted within 3 days of delivery. Item must be unused & in original packaging."}
+                  </div>
+                </div>
+                {canRequestReturn && (
+                  <Link
+                    to="/return-request"
+                    search={{ num: order.order_number }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-destructive text-destructive-foreground font-semibold text-sm shadow-md hover:scale-[1.02] transition-transform"
+                  >
+                    <RefreshCcw className="w-4 h-4" /> Request Return
+                  </Link>
+                )}
+              </div>
+            )}
 
             {/* Tracker */}
             {!cancelled && (

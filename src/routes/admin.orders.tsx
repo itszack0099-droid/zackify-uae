@@ -9,7 +9,7 @@ export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
 });
 
-type Status = "pending" | "confirmed" | "processing" | "shipped" | "out_for_delivery" | "delivered" | "cancelled";
+type Status = "pending" | "confirmed" | "processing" | "shipped" | "out_for_delivery" | "delivered" | "cancelled" | "return_requested" | "return_approved" | "returned";
 
 type Order = {
   id: string;
@@ -31,7 +31,7 @@ type Order = {
   estimated_delivery: string | null;
 };
 
-const STATUSES: Status[] = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
+const STATUSES: Status[] = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered", "cancelled", "return_requested", "return_approved", "returned"];
 const STATUS_LABEL: Record<Status, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
@@ -40,6 +40,9 @@ const STATUS_LABEL: Record<Status, string> = {
   out_for_delivery: "Out for Delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  return_requested: "Return Requested",
+  return_approved: "Return Approved",
+  returned: "Returned",
 };
 const COURIERS = ["Aramex", "DHL", "Emirates Post", "Fetchr", "Quiqup", "Talabat", "Careem Express", "Other"];
 
