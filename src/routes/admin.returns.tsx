@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { RefreshCcw, Check, X, CircleCheckBig, Info } from "lucide-react";
+import { RefreshCcw, Check, X, CircleCheckBig, Info, Radio } from "lucide-react";
 
 export const Route = createFileRoute("/admin/returns")({
   component: AdminReturns,
@@ -39,6 +39,7 @@ function AdminReturns() {
   const [rows, setRows] = useState<ReturnRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [pulseId, setPulseId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -52,11 +53,41 @@ function AdminReturns() {
 
   useEffect(() => { load(); }, []);
 
+  // Realtime: new return requests + status changes show up live
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-returns")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "return_requests" },
+        (payload) => {
+          console.log("[realtime] new return request", payload.new);
+          const row = payload.new as ReturnRow;
+          setRows((prev) => prev.some((r) => r.id === row.id) ? prev : [row, ...prev]);
+          setPulseId(row.id);
+          toast.info(`New return request: ${row.order_number}`);
+          setTimeout(() => setPulseId(null), 3000);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "return_requests" },
+        (payload) => {
+          console.log("[realtime] return updated", payload.new);
+          const row = payload.new as ReturnRow;
+          setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, ...row } : r)));
+          setPulseId(row.id);
+          setTimeout(() => setPulseId(null), 2000);
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const setStatus = async (row: ReturnRow, status: RStatus) => {
     const { error } = await supabase.from("return_requests").update({ status }).eq("id", row.id);
     if (error) { console.error(error); return toast.error("Failed to update return"); }
 
-    // Mirror status to the underlying order so customer tracking page reflects it
     if (status === "approved") {
       await supabase.from("orders").update({ status: "return_approved" }).eq("id", row.order_id);
     } else if (status === "completed") {
@@ -73,13 +104,22 @@ function AdminReturns() {
   };
 
   const filtered = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+  const pendingCount = rows.filter((r) => r.status === "pending").length;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl">Return Requests</h1>
-          <p className="text-sm text-muted-foreground">{rows.length} total</p>
+          <h1 className="font-display text-3xl flex items-center gap-3">
+            Return Requests
+            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <Radio className="w-3 h-3 animate-pulse-soft" /> LIVE
+            </span>
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {rows.length} total
+            {pendingCount > 0 && <span className="ms-2 text-yellow-400">· {pendingCount} pending</span>}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {(["all", ...STATUSES] as const).map((s) => (
@@ -120,7 +160,10 @@ function AdminReturns() {
                   </td>
                 </tr>
               ) : filtered.map((r) => (
-                <tr key={r.id} className="border-b border-gold/10 hover:bg-gold/5 transition-colors align-top">
+                <tr
+                  key={r.id}
+                  className={`border-b border-gold/10 hover:bg-gold/5 transition-colors align-top ${pulseId === r.id ? "bg-gold/10 ring-2 ring-gold/40" : ""}`}
+                >
                   <td className="p-4 text-gold font-medium">{r.order_number}</td>
                   <td className="text-foreground/80">{r.phone}</td>
                   <td>
@@ -141,7 +184,7 @@ function AdminReturns() {
                     {new Date(r.created_at).toLocaleDateString("en-AE", { dateStyle: "medium" })}
                   </td>
                   <td className="pr-4">
-                    <div className="flex justify-end gap-1.5">
+                    <div className="flex justify-end gap-1.5 flex-wrap">
                       {r.status === "pending" && (
                         <>
                           <button
@@ -159,6 +202,15 @@ function AdminReturns() {
                             <X className="w-3 h-3" /> Reject
                           </button>
                         </>
+                      )}
+                      {r.status === "rejected" && (
+                        <button
+                          onClick={() => setStatus(r, "approved")}
+                          className="px-2.5 py-1 text-xs rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors inline-flex items-center gap-1"
+                          title="Re-approve"
+                        >
+                          <Check className="w-3 h-3" /> Re-approve
+                        </button>
                       )}
                       {(r.status === "approved" || r.status === "pending") && (
                         <button
