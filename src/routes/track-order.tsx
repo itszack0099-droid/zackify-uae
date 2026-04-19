@@ -34,7 +34,13 @@ const LABELS: Record<string, string> = {
   out_for_delivery: "Out for Delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  return_requested: "Return Requested",
+  return_approved: "Return Approved",
+  returned: "Returned",
 };
+
+const RETURN_ELIGIBLE: ReadonlyArray<string> = ["delivered"];
+const RETURN_ACTIVE: ReadonlyArray<string> = ["return_requested", "return_approved", "returned"];
 
 function TrackPage() {
   const search = Route.useSearch();
@@ -75,6 +81,8 @@ function TrackPage() {
 
   const currentStep = order ? STEPS.indexOf(order.status as typeof STEPS[number]) : -1;
   const cancelled = order?.status === "cancelled";
+  const inReturnFlow = order ? RETURN_ACTIVE.includes(order.status) : false;
+  const canRequestReturn = order ? RETURN_ELIGIBLE.includes(order.status) : false;
 
   return (
     <Layout>
