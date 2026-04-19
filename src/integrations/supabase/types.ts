@@ -214,6 +214,53 @@ export type Database = {
         }
         Relationships: []
       }
+      return_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          message: string | null
+          order_id: string
+          order_number: string
+          phone: string
+          reason: string
+          status: Database["public"]["Enums"]["return_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          order_id: string
+          order_number: string
+          phone: string
+          reason: string
+          status?: Database["public"]["Enums"]["return_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          order_id?: string
+          order_number?: string
+          phone?: string
+          reason?: string
+          status?: Database["public"]["Enums"]["return_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -286,7 +333,11 @@ export type Database = {
         | "shipped"
         | "out_for_delivery"
         | "delivered"
+        | "return_requested"
+        | "return_approved"
+        | "returned"
         | "cancelled"
+      return_status: "pending" | "approved" | "rejected" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -422,8 +473,12 @@ export const Constants = {
         "shipped",
         "out_for_delivery",
         "delivered",
+        "return_requested",
+        "return_approved",
+        "returned",
         "cancelled",
       ],
+      return_status: ["pending", "approved", "rejected", "completed"],
     },
   },
 } as const
