@@ -186,7 +186,7 @@ function HomePage() {
             { icon: Banknote, title: "Cash on Delivery", desc: "Pay in cash when you receive your order" },
             { icon: Truck, title: "Fast Delivery", desc: "2–4 days across all UAE emirates" },
             { icon: Gem, title: "Premium Quality", desc: "Hand-picked luxury products only" },
-            { icon: RefreshCcw, title: "Easy Returns", desc: "Hassle-free 7-day return policy" },
+            { icon: RefreshCcw, title: "3 Days Return Policy", desc: "Return within 3 days of delivery, unused & in original packaging" },
           ].map((f, i) => (
             <div
               key={f.title}

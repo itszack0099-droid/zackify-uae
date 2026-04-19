@@ -33,7 +33,7 @@ export function Footer() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gold/10 border-b border-gold/15">
         {[
           { icon: Truck, label: "Cash on Delivery" },
-          { icon: RefreshCw, label: "Easy Returns" },
+          { icon: RefreshCw, label: "3 Days Return Policy" },
           { icon: ShieldCheck, label: "Premium Quality" },
           { icon: Mail, label: "2–4 Day Delivery" },
         ].map((f) => (
@@ -86,6 +86,7 @@ export function Footer() {
           <h4 className="font-display text-gold mb-3 text-sm uppercase tracking-wider">Help</h4>
           <ul className="space-y-2 text-sm text-foreground/70">
             <li><Link to="/track-order" className="hover:text-gold transition-colors">Track Order</Link></li>
+            <li><Link to="/return-request" className="hover:text-gold transition-colors">Request a Return</Link></li>
             <li><Link to="/contact" className="hover:text-gold transition-colors">Contact Us</Link></li>
             <li><a href={WHATSAPP_URL} target="_blank" rel="noopener" className="hover:text-gold transition-colors">WhatsApp</a></li>
             <li><Link to="/admin" className="hover:text-gold transition-colors">Admin</Link></li>
