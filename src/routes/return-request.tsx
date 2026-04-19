@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import { RefreshCcw, Hash, Phone, MessageSquare, CheckCircle2, AlertTriangle, Send } from "lucide-react";
 
@@ -11,13 +12,7 @@ export const Route = createFileRoute("/return-request")({
   component: ReturnRequestPage,
 });
 
-const REASONS = [
-  "Damaged product",
-  "Wrong item received",
-  "Not as described",
-  "Changed mind",
-  "Other",
-];
+const REASON_KEYS = ["ret.reasonDamaged", "ret.reasonWrong", "ret.reasonNotDescribed", "ret.reasonChangedMind", "ret.reasonOther"] as const;
 
 const RETURN_WINDOW_DAYS = 3;
 
@@ -30,6 +25,7 @@ const Schema = z.object({
 
 function ReturnRequestPage() {
   const search = Route.useSearch();
+  const { t } = useI18n();
   const [form, setForm] = useState({
     order_number: search.num ?? "",
     phone: "",
@@ -52,7 +48,6 @@ function ReturnRequestPage() {
     }
     setSubmitting(true);
 
-    // Look up order, verify phone, check return window & status
     const { data: order } = await supabase
       .from("orders")
       .select("id,order_number,phone,status,updated_at,created_at")
@@ -61,29 +56,28 @@ function ReturnRequestPage() {
 
     if (!order) {
       setSubmitting(false);
-      toast.error("Order not found. Check your order number.");
+      toast.error(t("ret.notFound"));
       return;
     }
 
     const norm = (s: string) => s.replace(/\D/g, "").slice(-9);
     if (norm(order.phone) !== norm(parsed.data.phone)) {
       setSubmitting(false);
-      toast.error("Phone number doesn't match this order.");
+      toast.error(t("track.phoneMismatch"));
       return;
     }
 
     if (order.status !== "delivered" && order.status !== "return_requested") {
       setSubmitting(false);
-      toast.error("Returns can only be requested after the order is delivered.");
+      toast.error(t("ret.notDelivered"));
       return;
     }
 
-    // 3-day window from delivery (we use updated_at when status moved to delivered)
     const deliveredAt = new Date(order.updated_at).getTime();
     const ageDays = (Date.now() - deliveredAt) / (1000 * 60 * 60 * 24);
     if (ageDays > RETURN_WINDOW_DAYS) {
       setSubmitting(false);
-      toast.error("Return period has expired. Returns are only accepted within 3 days of delivery.");
+      toast.error(t("ret.expired"));
       return;
     }
 
@@ -98,11 +92,10 @@ function ReturnRequestPage() {
     if (error) {
       setSubmitting(false);
       console.error(error);
-      toast.error("Could not submit your return request. Please try again.");
+      toast.error(t("ret.failed"));
       return;
     }
 
-    // Move order into return_requested state so admin sees it & customer can track
     if (order.status === "delivered") {
       await supabase.from("orders").update({ status: "return_requested" }).eq("id", order.id);
     }
@@ -121,16 +114,14 @@ function ReturnRequestPage() {
               <CheckCircle2 className="w-14 h-14 text-deep-green" strokeWidth={2} />
             </div>
           </div>
-          <h1 className="font-display text-3xl md:text-4xl mb-3">Return Request Submitted</h1>
-          <p className="text-foreground/70 mb-8">
-            Your return request has been submitted successfully. Our team will review and contact you shortly.
-          </p>
+          <h1 className="font-display text-3xl md:text-4xl mb-3">{t("ret.success")}</h1>
+          <p className="text-foreground/70 mb-8">{t("ret.successBody")}</p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/track-order" search={{ num: form.order_number }} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-105 transition-transform">
-              Track Order
+              {t("success.trackOrder")}
             </Link>
             <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass border border-gold/30 hover:border-gold transition-colors">
-              Continue Shopping
+              {t("common.continueShopping")}
             </Link>
           </div>
         </div>
@@ -143,56 +134,52 @@ function ReturnRequestPage() {
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-12">
         <div className="text-center mb-8 animate-fade-in-up">
           <RefreshCcw className="w-12 h-12 text-gold mx-auto mb-3" strokeWidth={1.5} />
-          <h1 className="font-display text-4xl mb-2">Request a Return</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Returns are accepted within <span className="text-gold font-semibold">3 days</span> of delivery. The product must be unused, in original condition, and in its original packaging.
-          </p>
+          <h1 className="font-display text-4xl mb-2">{t("ret.title")}</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">{t("ret.subtitle")}</p>
         </div>
 
         <div className="glass rounded-2xl p-4 mb-6 flex items-start gap-3 border border-gold/20 animate-fade-in">
           <AlertTriangle className="w-5 h-5 text-gold mt-0.5 shrink-0" />
-          <p className="text-sm text-foreground/80">
-            Submit one request per order. Our team will verify and reach out to you on WhatsApp or call.
-          </p>
+          <p className="text-sm text-foreground/80">{t("ret.note")}</p>
         </div>
 
         <form onSubmit={onSubmit} className="glass rounded-2xl p-5 md:p-6 space-y-4 animate-fade-in-up">
-          <Field label="Order ID *" icon={<Hash className="w-4 h-4" />}>
+          <Field label={`${t("ret.orderId")} *`} icon={<Hash className="w-4 h-4" />}>
             <input
               required
               value={form.order_number}
               onChange={(e) => setForm({ ...form, order_number: e.target.value })}
-              placeholder="ZK-XXXXXX-XXXX"
+              placeholder={t("ret.orderIdPh")}
               className="w-full bg-transparent py-2.5 focus:outline-none text-sm uppercase tracking-wider"
             />
           </Field>
-          <Field label="Phone Number *" icon={<Phone className="w-4 h-4" />}>
+          <Field label={`${t("ret.phone")} *`} icon={<Phone className="w-4 h-4" />}>
             <input
               required
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="Phone used at checkout"
+              placeholder={t("ret.phonePh")}
               className="w-full bg-transparent py-2.5 focus:outline-none text-sm"
               inputMode="tel"
             />
           </Field>
-          <Field label="Reason for Return *" icon={<RefreshCcw className="w-4 h-4" />}>
+          <Field label={`${t("ret.reason")} *`} icon={<RefreshCcw className="w-4 h-4" />}>
             <select
               required
               value={form.reason}
               onChange={(e) => setForm({ ...form, reason: e.target.value })}
               className="w-full bg-transparent py-2.5 focus:outline-none text-sm"
             >
-              <option value="">Choose a reason…</option>
-              {REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+              <option value="">{t("ret.chooseReason")}</option>
+              {REASON_KEYS.map((k) => <option key={k} value={t(k)}>{t(k)}</option>)}
             </select>
           </Field>
-          <Field label="Optional Message" icon={<MessageSquare className="w-4 h-4" />}>
+          <Field label={t("ret.message")} icon={<MessageSquare className="w-4 h-4" />}>
             <textarea
               rows={3}
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
-              placeholder="Anything else we should know?"
+              placeholder={t("ret.messagePh")}
               className="w-full bg-transparent py-2.5 focus:outline-none text-sm resize-none"
             />
           </Field>
@@ -203,7 +190,7 @@ function ReturnRequestPage() {
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-destructive text-destructive-foreground font-semibold shadow-md hover:scale-[1.02] transition-transform disabled:opacity-60"
           >
             <Send className="w-4 h-4" />
-            {submitting ? "Submitting…" : "Submit Return Request"}
+            {submitting ? t("ret.submitting") : t("ret.submit")}
           </button>
         </form>
       </div>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { useCart, formatAED } from "@/lib/cart";
+import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Banknote, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ const Schema = z.object({
 
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -44,8 +46,8 @@ function CheckoutPage() {
     return (
       <Layout>
         <div className="max-w-xl mx-auto px-6 py-24 text-center">
-          <h1 className="font-display text-2xl mb-4">Your cart is empty</h1>
-          <Link to="/" className="text-gold hover:underline">← Continue shopping</Link>
+          <h1 className="font-display text-2xl mb-4">{t("cart.empty")}</h1>
+          <Link to="/" className="text-gold hover:underline">← {t("common.continueShopping")}</Link>
         </div>
       </Layout>
     );
@@ -84,7 +86,6 @@ function CheckoutPage() {
       toast.error("Could not place your order. Please try again.");
       return;
     }
-    // Remember this order locally so the customer can see it in /account/orders
     try {
       const raw = localStorage.getItem("zackify_my_orders_v1");
       const list: string[] = raw ? JSON.parse(raw) : [];
@@ -98,48 +99,47 @@ function CheckoutPage() {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="font-display text-4xl mb-8">Checkout</h1>
+        <h1 className="font-display text-4xl mb-8">{t("checkout.title")}</h1>
 
         <form onSubmit={onSubmit} className="grid lg:grid-cols-[1fr_380px] gap-8">
-          {/* Form */}
           <div className="space-y-6">
             <section className="glass rounded-2xl p-6 space-y-4">
-              <h2 className="font-display text-xl">Delivery Details</h2>
+              <h2 className="font-display text-xl">{t("checkout.delivery")}</h2>
               <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Full Name *">
+                <Field label={`${t("checkout.fullName")} *`}>
                   <input required value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} className={inputCls} />
                 </Field>
-                <Field label="Phone Number *">
+                <Field label={`${t("checkout.phone")} *`}>
                   <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="05X XXX XXXX" className={inputCls} />
                 </Field>
-                <Field label="Address *" full>
-                  <input required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Street, building, apt" className={inputCls} />
+                <Field label={`${t("checkout.address")} *`} full>
+                  <input required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder={t("checkout.addressPh")} className={inputCls} />
                 </Field>
-                <Field label="City *">
+                <Field label={`${t("checkout.city")} *`}>
                   <input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className={inputCls} />
                 </Field>
-                <Field label="Emirate *">
+                <Field label={`${t("checkout.emirate")} *`}>
                   <select required value={form.emirate} onChange={(e) => setForm({ ...form, emirate: e.target.value })} className={inputCls}>
-                    <option value="">Select…</option>
+                    <option value="">{t("checkout.selectEmirate")}</option>
                     {EMIRATES.map((e) => <option key={e} value={e}>{e}</option>)}
                   </select>
                 </Field>
-                <Field label="Postal Code">
+                <Field label={t("checkout.postal")}>
                   <input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} className={inputCls} />
                 </Field>
-                <Field label="Order notes (optional)" full>
+                <Field label={t("checkout.notes")} full>
                   <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={inputCls} />
                 </Field>
               </div>
             </section>
 
             <section className="glass rounded-2xl p-6">
-              <h2 className="font-display text-xl mb-4">Payment</h2>
+              <h2 className="font-display text-xl mb-4">{t("checkout.payment")}</h2>
               <label className="flex items-center gap-4 p-4 rounded-xl border-2 border-gold bg-gold/5 cursor-pointer">
                 <Banknote className="w-7 h-7 text-gold" />
                 <div className="flex-1">
-                  <div className="font-semibold">Cash on Delivery</div>
-                  <div className="text-xs text-muted-foreground">Pay in cash when your order arrives</div>
+                  <div className="font-semibold">{t("checkout.cod")}</div>
+                  <div className="text-xs text-muted-foreground">{t("checkout.codDesc")}</div>
                 </div>
                 <div className="w-5 h-5 rounded-full border-2 border-gold flex items-center justify-center">
                   <div className="w-2.5 h-2.5 rounded-full bg-gold" />
@@ -148,9 +148,8 @@ function CheckoutPage() {
             </section>
           </div>
 
-          {/* Summary */}
           <aside className="glass rounded-2xl p-6 h-fit lg:sticky lg:top-24 space-y-4">
-            <h3 className="font-display text-xl">Your Order</h3>
+            <h3 className="font-display text-xl">{t("checkout.summary")}</h3>
             <div className="space-y-2 max-h-60 overflow-auto pr-2">
               {items.map((i) => (
                 <div key={i.id} className="flex gap-3 text-sm">
@@ -159,26 +158,26 @@ function CheckoutPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="line-clamp-1">{i.name}</div>
-                    <div className="text-xs text-muted-foreground">Qty {i.qty}</div>
+                    <div className="text-xs text-muted-foreground">{t("checkout.qty")} {i.qty}</div>
                   </div>
                   <div className="text-gold font-medium whitespace-nowrap">{formatAED(i.price * i.qty)}</div>
                 </div>
               ))}
             </div>
             <div className="border-t border-gold/15 pt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatAED(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="text-gold">{shipping === 0 ? "FREE" : formatAED(shipping)}</span></div>
-              <div className="flex justify-between font-bold text-lg pt-1"><span>Total</span><span className="text-gold font-display">{formatAED(total)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("common.subtotal")}</span><span>{formatAED(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("common.shipping")}</span><span className="text-gold">{shipping === 0 ? t("common.free") : formatAED(shipping)}</span></div>
+              <div className="flex justify-between font-bold text-lg pt-1"><span>{t("common.total")}</span><span className="text-gold font-display">{formatAED(total)}</span></div>
             </div>
             <button
               type="submit"
               disabled={submitting}
               className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform disabled:opacity-60"
             >
-              <Lock className="w-4 h-4" /> {submitting ? "Placing Order..." : "Place Order"}
+              <Lock className="w-4 h-4" /> {submitting ? t("checkout.placing") : t("checkout.placeOrder")}
             </button>
-            <p className="text-xs text-center text-muted-foreground">Delivery in 2–4 days across the UAE</p>
-            <p className="text-[11px] text-center text-muted-foreground">3 Days Return Policy — unused & in original packaging</p>
+            <p className="text-xs text-center text-muted-foreground">{t("common.deliveredIn")}</p>
+            <p className="text-[11px] text-center text-muted-foreground">{t("checkout.returnNote")}</p>
           </aside>
         </form>
       </div>
