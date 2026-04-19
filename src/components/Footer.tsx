@@ -4,8 +4,10 @@ import { Mail, Truck, ShieldCheck, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { WHATSAPP_URL } from "@/lib/contact";
+import { useI18n } from "@/lib/i18n";
 
 export function Footer() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,16 +29,18 @@ export function Footer() {
     }
   };
 
+  const trust = [
+    { icon: Truck, label: t("footer.trust1") },
+    { icon: RefreshCw, label: t("footer.trust2") },
+    { icon: ShieldCheck, label: t("footer.trust3") },
+    { icon: Mail, label: t("footer.trust4") },
+  ];
+
   return (
     <footer className="mt-24 border-t border-gold/15 bg-secondary/30">
       {/* Trust strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gold/10 border-b border-gold/15">
-        {[
-          { icon: Truck, label: "Cash on Delivery" },
-          { icon: RefreshCw, label: "3 Days Return Policy" },
-          { icon: ShieldCheck, label: "Premium Quality" },
-          { icon: Mail, label: "2–4 Day Delivery" },
-        ].map((f) => (
+        {trust.map((f) => (
           <div key={f.label} className="bg-background flex items-center justify-center gap-2 py-4 px-2 text-sm">
             <f.icon className="w-4 h-4 text-gold" />
             <span className="text-foreground/80">{f.label}</span>
@@ -50,16 +54,13 @@ export function Footer() {
             <span className="text-gradient-gold">Zackify</span>
             <span className="text-foreground/80">.uae</span>
           </div>
-          <p className="text-sm text-muted-foreground max-w-md mb-5">
-            Premium gear for the modern man in the UAE. Curated luxury accessories
-            with cash on delivery and 2–4 day shipping across all emirates.
-          </p>
+          <p className="text-sm text-muted-foreground max-w-md mb-5">{t("footer.tagline")}</p>
           <form onSubmit={subscribe} className="flex gap-2 max-w-md">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
+              placeholder={t("footer.emailPh")}
               className="flex-1 bg-card border border-gold/20 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20"
               required
             />
@@ -67,35 +68,35 @@ export function Footer() {
               disabled={loading}
               className="px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold hover:scale-105 transition-transform shadow-gold disabled:opacity-60"
             >
-              {loading ? "..." : "Join"}
+              {loading ? "..." : t("footer.subscribe")}
             </button>
           </form>
         </div>
 
         <div>
-          <h4 className="font-display text-gold mb-3 text-sm uppercase tracking-wider">Shop</h4>
+          <h4 className="font-display text-gold mb-3 text-sm uppercase tracking-wider">{t("footer.shop")}</h4>
           <ul className="space-y-2 text-sm text-foreground/70">
-            <li><Link to="/category/car-accessories" className="hover:text-gold transition-colors">Car Accessories</Link></li>
-            <li><Link to="/category/gym-fitness" className="hover:text-gold transition-colors">Gym & Fitness</Link></li>
-            <li><Link to="/category/phone-accessories" className="hover:text-gold transition-colors">Phone Accessories</Link></li>
-            <li><Link to="/hot-deals" className="hover:text-gold transition-colors">Hot Deals</Link></li>
+            <li><Link to="/category/car-accessories" className="hover:text-gold transition-colors">{t("nav.car")}</Link></li>
+            <li><Link to="/category/gym-fitness" className="hover:text-gold transition-colors">{t("nav.gym")}</Link></li>
+            <li><Link to="/category/phone-accessories" className="hover:text-gold transition-colors">{t("nav.phone")}</Link></li>
+            <li><Link to="/hot-deals" className="hover:text-gold transition-colors">{t("nav.deals")}</Link></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="font-display text-gold mb-3 text-sm uppercase tracking-wider">Help</h4>
+          <h4 className="font-display text-gold mb-3 text-sm uppercase tracking-wider">{t("footer.help")}</h4>
           <ul className="space-y-2 text-sm text-foreground/70">
-            <li><Link to="/track-order" className="hover:text-gold transition-colors">Track Order</Link></li>
-            <li><Link to="/return-request" className="hover:text-gold transition-colors">Request a Return</Link></li>
-            <li><Link to="/contact" className="hover:text-gold transition-colors">Contact Us</Link></li>
-            <li><a href={WHATSAPP_URL} target="_blank" rel="noopener" className="hover:text-gold transition-colors">WhatsApp</a></li>
-            <li><Link to="/admin" className="hover:text-gold transition-colors">Admin</Link></li>
+            <li><Link to="/track-order" className="hover:text-gold transition-colors">{t("footer.trackOrder")}</Link></li>
+            <li><Link to="/return-request" className="hover:text-gold transition-colors">{t("footer.requestReturn")}</Link></li>
+            <li><Link to="/contact" className="hover:text-gold transition-colors">{t("footer.contact")}</Link></li>
+            <li><a href={WHATSAPP_URL} target="_blank" rel="noopener" className="hover:text-gold transition-colors">{t("footer.whatsapp")}</a></li>
+            <li><Link to="/admin" className="hover:text-gold transition-colors">{t("footer.admin")}</Link></li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-gold/15 py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Zackify.uae — Premium gear, delivered.
+        © {new Date().getFullYear()} Zackify.uae — {t("footer.copyright")}
       </div>
     </footer>
   );
