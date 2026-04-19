@@ -84,6 +84,25 @@ function OrdersPage() {
     })();
   }, [user, authLoading, navigate]);
 
+  // Realtime live updates for the user's orders (incl. return status)
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`my-orders-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders" },
+        (payload) => {
+          const row = payload.new as { id: string } & Partial<Order>;
+          console.log("[realtime] my order updated", row);
+          setOrders((prev) => prev.map((o) => (o.id === row.id ? { ...o, ...row } as Order : o)));
+          if (row.status) toast.success(`Order ${row.order_number ?? ""} updated`);
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const reorder = (order: Order) => {
     order.items.forEach((it) => {
       add(

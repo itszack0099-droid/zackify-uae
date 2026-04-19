@@ -61,6 +61,33 @@ function AdminOrders() {
 
   useEffect(() => { load(); }, []);
 
+  // Realtime: new orders + status changes appear live
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          console.log("[realtime] new order", payload.new);
+          const row = payload.new as Order;
+          setOrders((prev) => prev.some((o) => o.id === row.id) ? prev : [row, ...prev]);
+          toast.info(`New order: ${row.order_number}`);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders" },
+        (payload) => {
+          console.log("[realtime] order updated", payload.new);
+          const row = payload.new as Order;
+          setOrders((prev) => prev.map((o) => (o.id === row.id ? { ...o, ...row } : o)));
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const updateStatus = async (id: string, status: Status) => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", id).select();
     if (error) { console.error(error); return toast.error("Failed to update status"); }
