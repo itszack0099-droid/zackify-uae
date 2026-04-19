@@ -154,6 +154,32 @@ function TrackPage() {
               </div>
             </div>
 
+            {/* Return CTA */}
+            {(canRequestReturn || inReturnFlow) && (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="font-semibold flex items-center gap-2 text-destructive">
+                    <RefreshCcw className="w-4 h-4" />
+                    {inReturnFlow ? "Return in progress" : "Need to return this order?"}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {inReturnFlow
+                      ? "Our team is processing your return. We'll contact you shortly."
+                      : "Returns are accepted within 3 days of delivery. Item must be unused & in original packaging."}
+                  </div>
+                </div>
+                {canRequestReturn && (
+                  <Link
+                    to="/return-request"
+                    search={{ num: order.order_number }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-destructive text-destructive-foreground font-semibold text-sm shadow-md hover:scale-[1.02] transition-transform"
+                  >
+                    <RefreshCcw className="w-4 h-4" /> Request Return
+                  </Link>
+                )}
+              </div>
+            )}
+
             {/* Tracker */}
             {!cancelled && (
               <div className="overflow-x-auto">
