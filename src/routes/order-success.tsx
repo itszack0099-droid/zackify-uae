@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { z } from "zod";
 import { CheckCircle2, Package, Home, Banknote } from "lucide-react";
 import { Layout } from "@/components/Layout";
@@ -8,8 +9,48 @@ export const Route = createFileRoute("/order-success")({
   component: OrderSuccess,
 });
 
+// Generate a pleasant 3-note success chime in-browser (no external assets needed)
+function playSuccessChime() {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    const notes = [
+      { f: 523.25, t: 0 },     // C5
+      { f: 659.25, t: 0.14 },  // E5
+      { f: 783.99, t: 0.28 },  // G5
+    ];
+    notes.forEach(({ f, t }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.0001, now + t);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.55);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + t);
+      osc.stop(now + t + 0.6);
+    });
+    setTimeout(() => ctx.close().catch(() => {}), 1200);
+  } catch {
+    /* ignore */
+  }
+}
+
 function OrderSuccess() {
   const { num } = Route.useSearch();
+  const played = useRef(false);
+
+  useEffect(() => {
+    if (played.current) return;
+    played.current = true;
+    // Slight delay so the chime feels celebratory after the icon animates in
+    const id = setTimeout(playSuccessChime, 250);
+    return () => clearTimeout(id);
+  }, []);
+
   return (
     <Layout>
       <div className="max-w-xl mx-auto px-6 py-20 text-center animate-fade-in-up">
@@ -44,6 +85,9 @@ function OrderSuccess() {
 
         <p className="mt-10 text-sm text-muted-foreground inline-flex items-center justify-center gap-2">
           <Banknote className="w-4 h-4 text-gold" /> Pay in cash when the order arrives. Our team will call you to confirm.
+        </p>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Returns are accepted within <span className="text-gold font-medium">3 days</span> of delivery.
         </p>
       </div>
     </Layout>
