@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2 } from "lucide-react
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 import { squareCompress } from "@/lib/imageCompress";
+import { CsvProductUpload } from "@/components/admin/CsvProductUpload";
 
 export const Route = createFileRoute("/admin/products")({
   component: AdminProducts,
@@ -190,14 +191,17 @@ function AdminProducts() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl">Products</h1>
           <p className="text-sm text-muted-foreground">{items.length} products</p>
         </div>
-        <button onClick={startNew} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold">
-          <Plus className="w-4 h-4" /> New Product
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <CsvProductUpload onDone={load} />
+          <button onClick={startNew} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold">
+            <Plus className="w-4 h-4" /> New Product
+          </button>
+        </div>
       </div>
 
       <div className="glass rounded-2xl overflow-hidden">
