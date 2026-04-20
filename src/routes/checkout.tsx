@@ -27,8 +27,11 @@ const Schema = z.object({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const { t } = useI18n();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [saved, setSaved] = useState<SavedAddress[]>([]);
+  const [selectedSaved, setSelectedSaved] = useState<string>("");
   const [form, setForm] = useState({
     customer_name: "",
     phone: "",
@@ -38,6 +41,52 @@ function CheckoutPage() {
     postal_code: "",
     notes: "",
   });
+
+  // Load saved addresses for signed-in users; auto-fill the default one.
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("addresses")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("is_default", { ascending: false })
+      .then(({ data }) => {
+        const list = (data ?? []) as SavedAddress[];
+        setSaved(list);
+        const def = list.find((a) => a.is_default) ?? list[0];
+        if (def) {
+          setSelectedSaved(def.id);
+          setForm((f) => ({
+            ...f,
+            customer_name: def.full_name,
+            phone: def.phone,
+            address: def.address,
+            city: def.city,
+            emirate: def.emirate,
+            postal_code: def.postal_code ?? "",
+          }));
+        }
+      });
+  }, [user]);
+
+  const applySaved = (id: string) => {
+    setSelectedSaved(id);
+    if (id === "new") {
+      setForm({ ...form, customer_name: "", phone: "", address: "", city: "", emirate: "", postal_code: "" });
+      return;
+    }
+    const a = saved.find((x) => x.id === id);
+    if (!a) return;
+    setForm({
+      ...form,
+      customer_name: a.full_name,
+      phone: a.phone,
+      address: a.address,
+      city: a.city,
+      emirate: a.emirate,
+      postal_code: a.postal_code ?? "",
+    });
+  };
 
   const shipping = subtotal >= 200 ? 0 : 20;
   const total = subtotal + shipping;
