@@ -1,12 +1,24 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { useCart, formatAED } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { Banknote, Lock } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { Banknote, Lock, MapPin } from "lucide-react";
 import { toast } from "sonner";
+
+type SavedAddress = {
+  id: string;
+  full_name: string;
+  phone: string;
+  address: string;
+  city: string;
+  emirate: string;
+  postal_code: string | null;
+  is_default: boolean;
+};
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
