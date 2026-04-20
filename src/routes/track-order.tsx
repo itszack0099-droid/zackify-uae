@@ -25,6 +25,8 @@ type Order = {
   tracking_number: string | null;
   courier_name: string | null;
   estimated_delivery: string | null;
+  delivery_date: string | null;
+  return_deadline: string | null;
 };
 
 const STEPS = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered"] as const;
@@ -73,7 +75,7 @@ function TrackPage() {
     setError(null);
     const { data } = await supabase
       .from("orders")
-      .select("id,order_number,customer_name,phone,status,total,created_at,updated_at,items,tracking_number,courier_name,estimated_delivery")
+      .select("id,order_number,customer_name,phone,status,total,created_at,updated_at,items,tracking_number,courier_name,estimated_delivery,delivery_date,return_deadline")
       .eq("order_number", num.trim().toUpperCase())
       .maybeSingle();
     setLoading(false);
@@ -94,7 +96,11 @@ function TrackPage() {
   const currentStep = order ? STEPS.indexOf(order.status as typeof STEPS[number]) : -1;
   const cancelled = order?.status === "cancelled";
   const inReturnFlow = order ? RETURN_ACTIVE.includes(order.status) : false;
-  const canRequestReturn = order ? RETURN_ELIGIBLE.includes(order.status) : false;
+  // Compute return window from return_deadline (set by DB trigger when status=delivered)
+  const deadline = order?.return_deadline ? new Date(order.return_deadline).getTime() : null;
+  const withinWindow = deadline ? Date.now() <= deadline : false;
+  const canRequestReturn = order ? RETURN_ELIGIBLE.includes(order.status) && withinWindow : false;
+  const returnExpired = order ? RETURN_ELIGIBLE.includes(order.status) && deadline !== null && !withinWindow : false;
   const locale = lang === "ar" ? "ar-AE" : "en-AE";
 
   return (
@@ -188,6 +194,11 @@ function TrackPage() {
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
                     {inReturnFlow ? t("track.returnInProgressDesc") : t("track.returnAvailableDesc")}
+                    {canRequestReturn && deadline && (
+                      <span className="block mt-1 text-gold">
+                        {t("track.eta")}: {new Date(deadline).toLocaleDateString(locale, { dateStyle: "medium" })}
+                      </span>
+                    )}
                   </div>
                 </div>
                 {canRequestReturn && (
@@ -199,6 +210,17 @@ function TrackPage() {
                     <RefreshCcw className="w-4 h-4" /> {t("track.requestReturn")}
                   </Link>
                 )}
+              </div>
+            )}
+
+            {/* Return expired notice */}
+            {returnExpired && !inReturnFlow && (
+              <div className="rounded-xl border border-muted/40 bg-muted/10 p-4 flex items-start gap-3">
+                <Clock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                <div>
+                  <div className="font-semibold text-foreground/80">{t("track.returnExpired")}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t("track.returnExpiredDesc")}</div>
+                </div>
               </div>
             )}
 

@@ -125,6 +125,8 @@ const STRINGS = {
     "track.returnInProgressDesc": "Our team is processing your return. We'll contact you shortly.",
     "track.returnAvailable": "Need to return this order?",
     "track.returnAvailableDesc": "Returns are accepted within 3 days of delivery. Item must be unused & in original packaging.",
+    "track.returnExpired": "Return period has expired",
+    "track.returnExpiredDesc": "Returns are only allowed within 3 days of delivery.",
 
     // Return request
     "ret.title": "Request a Return",
@@ -303,6 +305,8 @@ const STRINGS = {
     "track.returnInProgressDesc": "فريقنا يعالج طلب الإرجاع. سنتواصل معك قريباً.",
     "track.returnAvailable": "هل تحتاج إلى إرجاع هذا الطلب؟",
     "track.returnAvailableDesc": "يُقبل الإرجاع خلال 3 أيام من التسليم. يجب أن يكون المنتج غير مستخدم وبتغليفه الأصلي.",
+    "track.returnExpired": "انتهت فترة الإرجاع",
+    "track.returnExpiredDesc": "يُسمح بالإرجاع فقط خلال 3 أيام من التسليم.",
 
     // Return request
     "ret.title": "طلب إرجاع",

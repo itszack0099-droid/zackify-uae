@@ -105,6 +105,7 @@ export type Database = {
           courier_name: string | null
           created_at: string
           customer_name: string
+          delivery_date: string | null
           emirate: string
           estimated_delivery: string | null
           id: string
@@ -113,6 +114,7 @@ export type Database = {
           order_number: string
           phone: string
           postal_code: string | null
+          return_deadline: string | null
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
@@ -125,6 +127,7 @@ export type Database = {
           courier_name?: string | null
           created_at?: string
           customer_name: string
+          delivery_date?: string | null
           emirate: string
           estimated_delivery?: string | null
           id?: string
@@ -133,6 +136,7 @@ export type Database = {
           order_number?: string
           phone: string
           postal_code?: string | null
+          return_deadline?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
@@ -145,6 +149,7 @@ export type Database = {
           courier_name?: string | null
           created_at?: string
           customer_name?: string
+          delivery_date?: string | null
           emirate?: string
           estimated_delivery?: string | null
           id?: string
@@ -153,6 +158,7 @@ export type Database = {
           order_number?: string
           phone?: string
           postal_code?: string | null
+          return_deadline?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
           total?: number
