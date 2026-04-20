@@ -50,7 +50,7 @@ function ReturnRequestPage() {
 
     const { data: order } = await supabase
       .from("orders")
-      .select("id,order_number,phone,status,updated_at,created_at")
+      .select("id,order_number,phone,status,updated_at,created_at,delivery_date,return_deadline")
       .eq("order_number", parsed.data.order_number.trim().toUpperCase())
       .maybeSingle();
 
@@ -73,9 +73,14 @@ function ReturnRequestPage() {
       return;
     }
 
-    const deliveredAt = new Date(order.updated_at).getTime();
-    const ageDays = (Date.now() - deliveredAt) / (1000 * 60 * 60 * 24);
-    if (ageDays > RETURN_WINDOW_DAYS) {
+    // Use server-set return_deadline if available (set by trigger when status=delivered),
+    // else fall back to delivery_date+3d, else updated_at+3d for legacy orders
+    const deadlineMs = order.return_deadline
+      ? new Date(order.return_deadline).getTime()
+      : order.delivery_date
+        ? new Date(order.delivery_date).getTime() + RETURN_WINDOW_DAYS * 24 * 60 * 60 * 1000
+        : new Date(order.updated_at).getTime() + RETURN_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    if (Date.now() > deadlineMs) {
       setSubmitting(false);
       toast.error(t("ret.expired"));
       return;
