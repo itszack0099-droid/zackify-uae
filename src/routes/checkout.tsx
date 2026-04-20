@@ -1,12 +1,24 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { useCart, formatAED } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { Banknote, Lock } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { Banknote, Lock, MapPin } from "lucide-react";
 import { toast } from "sonner";
+
+type SavedAddress = {
+  id: string;
+  full_name: string;
+  phone: string;
+  address: string;
+  city: string;
+  emirate: string;
+  postal_code: string | null;
+  is_default: boolean;
+};
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -27,8 +39,11 @@ const Schema = z.object({
 function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
   const { t } = useI18n();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [saved, setSaved] = useState<SavedAddress[]>([]);
+  const [selectedSaved, setSelectedSaved] = useState<string>("");
   const [form, setForm] = useState({
     customer_name: "",
     phone: "",
@@ -38,6 +53,52 @@ function CheckoutPage() {
     postal_code: "",
     notes: "",
   });
+
+  // Load saved addresses for signed-in users; auto-fill the default one.
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("addresses")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("is_default", { ascending: false })
+      .then(({ data }) => {
+        const list = (data ?? []) as SavedAddress[];
+        setSaved(list);
+        const def = list.find((a) => a.is_default) ?? list[0];
+        if (def) {
+          setSelectedSaved(def.id);
+          setForm((f) => ({
+            ...f,
+            customer_name: def.full_name,
+            phone: def.phone,
+            address: def.address,
+            city: def.city,
+            emirate: def.emirate,
+            postal_code: def.postal_code ?? "",
+          }));
+        }
+      });
+  }, [user]);
+
+  const applySaved = (id: string) => {
+    setSelectedSaved(id);
+    if (id === "new") {
+      setForm({ ...form, customer_name: "", phone: "", address: "", city: "", emirate: "", postal_code: "" });
+      return;
+    }
+    const a = saved.find((x) => x.id === id);
+    if (!a) return;
+    setForm({
+      ...form,
+      customer_name: a.full_name,
+      phone: a.phone,
+      address: a.address,
+      city: a.city,
+      emirate: a.emirate,
+      postal_code: a.postal_code ?? "",
+    });
+  };
 
   const shipping = subtotal >= 200 ? 0 : 20;
   const total = subtotal + shipping;
@@ -104,7 +165,32 @@ function CheckoutPage() {
         <form onSubmit={onSubmit} className="grid lg:grid-cols-[1fr_380px] gap-8">
           <div className="space-y-6">
             <section className="glass rounded-2xl p-6 space-y-4">
-              <h2 className="font-display text-xl">{t("checkout.delivery")}</h2>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h2 className="font-display text-xl">{t("checkout.delivery")}</h2>
+                {user && saved.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <MapPin className="w-3.5 h-3.5 text-gold" />
+                    <select
+                      value={selectedSaved}
+                      onChange={(e) => applySaved(e.target.value)}
+                      className="bg-card border border-gold/20 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gold"
+                    >
+                      {saved.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.full_name} — {a.city}
+                          {a.is_default ? " ★" : ""}
+                        </option>
+                      ))}
+                      <option value="new">+ Use a new address</option>
+                    </select>
+                  </div>
+                )}
+                {user && saved.length === 0 && (
+                  <Link to="/account/addresses" className="text-xs text-gold hover:underline">
+                    + Save addresses for next time
+                  </Link>
+                )}
+              </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <Field label={`${t("checkout.fullName")} *`}>
                   <input required value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} className={inputCls} />

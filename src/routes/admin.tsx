@@ -1,8 +1,9 @@
-import { createFileRoute, Outlet, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
-import { LayoutDashboard, ShoppingBag, Package, Tag, LogOut, Menu, X, RefreshCcw } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Tag, LogOut, Menu, X, RefreshCcw, Bell, BellOff } from "lucide-react";
+import { subscribeAdminAlerts, ensureNotificationPermission, playAlertChime } from "@/lib/adminAlerts";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -32,6 +33,19 @@ function AdminLayout() {
     const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
     setIsAdmin(!!data);
   };
+
+  // Realtime alerts (chime + browser notification) — only when signed in as admin
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(
+    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "denied"
+  );
+  useEffect(() => {
+    if (!session || !isAdmin) return;
+    ensureNotificationPermission().then(() => {
+      if (typeof window !== "undefined" && "Notification" in window) setNotifPerm(Notification.permission);
+    });
+    const unsub = subscribeAdminAlerts({});
+    return unsub;
+  }, [session, isAdmin]);
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -83,8 +97,20 @@ function AdminLayout() {
             </Link>
           ))}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-gold/15">
-          <div className="text-xs text-muted-foreground mb-2 truncate px-1">{session.user.email}</div>
+        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-gold/15 space-y-2">
+          <div className="text-xs text-muted-foreground truncate px-1">{session.user.email}</div>
+          <button
+            onClick={async () => {
+              await ensureNotificationPermission();
+              if (typeof window !== "undefined" && "Notification" in window) setNotifPerm(Notification.permission);
+              playAlertChime();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs border border-gold/20 hover:bg-gold/10 transition-colors"
+            title="Test alert sound and enable browser notifications"
+          >
+            {notifPerm === "granted" ? <Bell className="w-3.5 h-3.5 text-gold" /> : <BellOff className="w-3.5 h-3.5" />}
+            {notifPerm === "granted" ? "Alerts on · Test" : "Enable alerts"}
+          </button>
           <button onClick={logout} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-gold/20 hover:bg-destructive/10 hover:text-destructive transition-colors">
             <LogOut className="w-4 h-4" /> Logout
           </button>
