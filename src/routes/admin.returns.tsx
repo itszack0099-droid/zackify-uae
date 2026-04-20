@@ -85,6 +85,27 @@ function AdminReturns() {
   }, []);
 
   const setStatus = async (row: ReturnRow, status: RStatus) => {
+    // Guard: if approving, verify the 3-day return window is still open
+    if (status === "approved") {
+      const { data: ord } = await supabase
+        .from("orders")
+        .select("return_deadline,delivery_date,updated_at")
+        .eq("id", row.order_id)
+        .maybeSingle();
+      const deadlineMs = ord?.return_deadline
+        ? new Date(ord.return_deadline).getTime()
+        : ord?.delivery_date
+          ? new Date(ord.delivery_date).getTime() + 3 * 24 * 60 * 60 * 1000
+          : ord?.updated_at
+            ? new Date(ord.updated_at).getTime() + 3 * 24 * 60 * 60 * 1000
+            : null;
+      if (deadlineMs && Date.now() > deadlineMs) {
+        toast.error("Return window expired — cannot approve this return.");
+        window.alert("Return window expired.\n\nThis order was delivered more than 3 days ago. Returns are only allowed within 3 days of delivery.");
+        return;
+      }
+    }
+
     const { error } = await supabase.from("return_requests").update({ status }).eq("id", row.id);
     if (error) { console.error(error); return toast.error("Failed to update return"); }
 
