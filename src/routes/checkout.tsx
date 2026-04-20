@@ -165,7 +165,32 @@ function CheckoutPage() {
         <form onSubmit={onSubmit} className="grid lg:grid-cols-[1fr_380px] gap-8">
           <div className="space-y-6">
             <section className="glass rounded-2xl p-6 space-y-4">
-              <h2 className="font-display text-xl">{t("checkout.delivery")}</h2>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h2 className="font-display text-xl">{t("checkout.delivery")}</h2>
+                {user && saved.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <MapPin className="w-3.5 h-3.5 text-gold" />
+                    <select
+                      value={selectedSaved}
+                      onChange={(e) => applySaved(e.target.value)}
+                      className="bg-card border border-gold/20 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gold"
+                    >
+                      {saved.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.full_name} — {a.city}
+                          {a.is_default ? " ★" : ""}
+                        </option>
+                      ))}
+                      <option value="new">+ Use a new address</option>
+                    </select>
+                  </div>
+                )}
+                {user && saved.length === 0 && (
+                  <Link to="/account/addresses" className="text-xs text-gold hover:underline">
+                    + Save addresses for next time
+                  </Link>
+                )}
+              </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <Field label={`${t("checkout.fullName")} *`}>
                   <input required value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} className={inputCls} />
