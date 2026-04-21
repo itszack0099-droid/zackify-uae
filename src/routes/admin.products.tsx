@@ -234,14 +234,35 @@ function AdminProducts() {
     setItems((p) => p.filter((x) => x.id !== id));
   };
 
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? items.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.sku ?? "").toLowerCase().includes(q) ||
+          (p.category_slug ?? "").toLowerCase().includes(q),
+      )
+    : items;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl">Products</h1>
-          <p className="text-sm text-muted-foreground">{items.length} products</p>
+          <p className="text-sm text-muted-foreground">
+            {filtered.length} of {items.length} products
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, SKU…"
+              className="pl-9 pr-3 py-2 rounded-full glass border border-gold/20 text-sm focus:outline-none focus:border-gold w-56"
+            />
+          </div>
           <CsvProductUpload onDone={load} />
           <button onClick={startNew} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold">
             <Plus className="w-4 h-4" /> New Product
@@ -255,6 +276,7 @@ function AdminProducts() {
             <thead>
               <tr className="text-left text-xs text-muted-foreground uppercase border-b border-gold/15">
                 <th className="p-4">Product</th>
+                <th>SKU</th>
                 <th>Category</th>
                 <th>Price</th>
                 <th>Stock</th>
@@ -265,9 +287,11 @@ function AdminProducts() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}><td colSpan={6} className="p-2"><div className="h-12 rounded-lg animate-shimmer-bg" /></td></tr>
+                  <tr key={i}><td colSpan={7} className="p-2"><div className="h-12 rounded-lg animate-shimmer-bg" /></td></tr>
                 ))
-              ) : items.map((p) => (
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No products match.</td></tr>
+              ) : filtered.map((p) => (
                 <tr key={p.id} className="border-b border-gold/10 hover:bg-gold/5">
                   <td className="p-3">
                     <div className="flex items-center gap-3">
@@ -277,6 +301,7 @@ function AdminProducts() {
                       <span className="font-medium">{p.name}</span>
                     </div>
                   </td>
+                  <td className="text-xs font-mono text-muted-foreground">{p.sku ?? "—"}</td>
                   <td className="text-xs text-muted-foreground">{p.category_slug}</td>
                   <td>
                     <div className="text-gold font-medium">{formatAED(Number(p.discount_price ?? p.price))}</div>
