@@ -58,13 +58,13 @@ function AccountPage() {
             <p className="text-sm text-muted-foreground mb-6">{user.email}</p>
 
             <div className="space-y-2">
-              <Link to="/account/profile" search={{}} className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform">
+              <Link to="/account/profile" search={{ redirect: undefined }} className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform">
                 <Settings className="w-4 h-4" /> My Profile
               </Link>
-              <Link to="/account/orders" search={{}} className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full glass border border-gold/30 hover:border-gold transition-colors">
+              <Link to="/account/orders" search={{ redirect: undefined }} className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full glass border border-gold/30 hover:border-gold transition-colors">
                 <Package className="w-4 h-4" /> My Orders
               </Link>
-              <Link to="/account/addresses" search={{}} className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full glass border border-gold/30 hover:border-gold transition-colors">
+              <Link to="/account/addresses" search={{ redirect: undefined }} className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full glass border border-gold/30 hover:border-gold transition-colors">
                 <MapPin className="w-4 h-4" /> Address Book
               </Link>
               <Link to="/wishlist" className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full glass border border-gold/30 hover:border-gold transition-colors">

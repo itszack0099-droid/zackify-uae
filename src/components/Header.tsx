@@ -101,7 +101,7 @@ export function Header() {
           </Link>
           <Link
             to="/account"
-            search={{}}
+            search={{ redirect: undefined }}
             className="w-11 h-11 sm:w-12 sm:h-12 rounded-full hover:bg-gold/10 hover:text-gold transition-colors flex items-center justify-center"
             aria-label={t("common.account")}
           >

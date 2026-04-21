@@ -186,7 +186,7 @@ function CheckoutPage() {
                   </div>
                 )}
                 {user && saved.length === 0 && (
-                  <Link to="/account/addresses" search={{}} className="text-xs text-gold hover:underline">
+                  <Link to="/account/addresses" search={{ redirect: undefined }} className="text-xs text-gold hover:underline">
                     + Save addresses for next time
                   </Link>
                 )}
