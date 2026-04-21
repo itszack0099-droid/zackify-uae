@@ -106,6 +106,8 @@ function AdminOrders() {
     if (selected?.id === id) setSelected(null);
   };
 
+  const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -169,9 +171,12 @@ function AdminOrders() {
                     ) : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("en-AE")}</td>
-                  <td className="pr-4">
-                    <button onClick={() => setSelected(o)} className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold transition-colors">
+                  <td className="pr-4 text-right whitespace-nowrap">
+                    <button onClick={() => setSelected(o)} title="View / Edit" className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold transition-colors">
                       <Eye className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => deleteOrder(o.id, o.order_number)} title="Delete order" className="p-2 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors">
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
