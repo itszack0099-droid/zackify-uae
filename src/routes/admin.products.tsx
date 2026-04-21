@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2, Search, Film } from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 import { squareCompress } from "@/lib/imageCompress";
@@ -45,8 +45,10 @@ function AdminProducts() {
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [featuresStr, setFeaturesStr] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [filterText, setFilterText] = useState("");
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [search, setSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const [p, c] = await Promise.all([
@@ -116,6 +118,46 @@ function AdminProducts() {
       toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded — auto-cropped & compressed`);
     }
     setUploading(false);
+  };
+
+  // Upload MP4/GIF/video media to product-media bucket and append to images[]
+  const uploadMedia = async (files: FileList | File[]) => {
+    if (!editing) return;
+    const list = Array.from(files);
+    if (!list.length) return;
+    setUploadingMedia(true);
+    const uploaded: string[] = [];
+    for (const f of list) {
+      const okType = f.type.startsWith("video/") || f.type === "image/gif";
+      if (!okType) {
+        toast.error(`${f.name} must be an MP4, video, or GIF`);
+        continue;
+      }
+      if (f.size > 50 * 1024 * 1024) {
+        toast.error(`${f.name} is over 50MB`);
+        continue;
+      }
+      const ext = f.name.split(".").pop()?.toLowerCase() || (f.type === "image/gif" ? "gif" : "mp4");
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("product-media").upload(fileName, f, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: f.type,
+      });
+      if (upErr) {
+        console.error("media upload failed:", upErr);
+        toast.error(upErr.message);
+        continue;
+      }
+      const { data } = supabase.storage.from("product-media").getPublicUrl(fileName);
+      uploaded.push(data.publicUrl);
+    }
+    if (uploaded.length) {
+      const merged = [...(editing.images ?? []), ...uploaded];
+      setEditing({ ...editing, images: merged, image_url: editing.image_url || merged[0] });
+      toast.success(`${uploaded.length} media file${uploaded.length > 1 ? "s" : ""} uploaded`);
+    }
+    setUploadingMedia(false);
   };
 
   const removeImageAt = (idx: number) => {
@@ -192,14 +234,35 @@ function AdminProducts() {
     setItems((p) => p.filter((x) => x.id !== id));
   };
 
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? items.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.sku ?? "").toLowerCase().includes(q) ||
+          (p.category_slug ?? "").toLowerCase().includes(q),
+      )
+    : items;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl">Products</h1>
-          <p className="text-sm text-muted-foreground">{items.length} products</p>
+          <p className="text-sm text-muted-foreground">
+            {filtered.length} of {items.length} products
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, SKU…"
+              className="pl-9 pr-3 py-2 rounded-full glass border border-gold/20 text-sm focus:outline-none focus:border-gold w-56"
+            />
+          </div>
           <CsvProductUpload onDone={load} />
           <button onClick={startNew} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold">
             <Plus className="w-4 h-4" /> New Product
@@ -213,6 +276,7 @@ function AdminProducts() {
             <thead>
               <tr className="text-left text-xs text-muted-foreground uppercase border-b border-gold/15">
                 <th className="p-4">Product</th>
+                <th>SKU</th>
                 <th>Category</th>
                 <th>Price</th>
                 <th>Stock</th>
@@ -223,9 +287,11 @@ function AdminProducts() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}><td colSpan={6} className="p-2"><div className="h-12 rounded-lg animate-shimmer-bg" /></td></tr>
+                  <tr key={i}><td colSpan={7} className="p-2"><div className="h-12 rounded-lg animate-shimmer-bg" /></td></tr>
                 ))
-              ) : items.map((p) => (
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No products match.</td></tr>
+              ) : filtered.map((p) => (
                 <tr key={p.id} className="border-b border-gold/10 hover:bg-gold/5">
                   <td className="p-3">
                     <div className="flex items-center gap-3">
@@ -235,6 +301,7 @@ function AdminProducts() {
                       <span className="font-medium">{p.name}</span>
                     </div>
                   </td>
+                  <td className="text-xs font-mono text-muted-foreground">{p.sku ?? "—"}</td>
                   <td className="text-xs text-muted-foreground">{p.category_slug}</td>
                   <td>
                     <div className="text-gold font-medium">{formatAED(Number(p.discount_price ?? p.price))}</div>
@@ -270,27 +337,47 @@ function AdminProducts() {
               <Field label="Slug">
                 <input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inp} />
               </Field>
+              <Field label="SKU (leave blank to auto-generate)">
+                <input
+                  value={editing.sku ?? ""}
+                  onChange={(e) => setEditing({ ...editing, sku: e.target.value })}
+                  placeholder="e.g. SKU-WATCH01 — auto-generated if empty"
+                  className={`${inp} font-mono`}
+                />
+              </Field>
               <Field label="Product Images (first one is the cover)">
                 <div className="space-y-3">
                   {(editing.images?.length ?? 0) > 0 && (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {(editing.images ?? []).map((url, idx) => (
-                        <div key={`${url}-${idx}`} className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square">
-                          <img src={url} alt="" className="w-full h-full object-cover" />
-                          {idx === 0 && (
-                            <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">Cover</span>
-                          )}
-                          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-black/60 opacity-0 group-hover:opacity-100 transition">
-                            <div className="flex gap-1">
-                              <button type="button" onClick={() => moveImage(idx, -1)} disabled={idx === 0} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">←</button>
-                              <button type="button" onClick={() => moveImage(idx, 1)} disabled={idx === (editing.images?.length ?? 0) - 1} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">→</button>
+                      {(editing.images ?? []).map((url, idx) => {
+                        const isVid = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+                        return (
+                          <div key={`${url}-${idx}`} className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square">
+                            {isVid ? (
+                              <>
+                                <video src={url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+                                <div className="absolute top-1 right-1 text-[9px] uppercase bg-black/60 text-white px-1.5 py-0.5 rounded flex items-center gap-1">
+                                  <Film className="w-2.5 h-2.5" /> MP4
+                                </div>
+                              </>
+                            ) : (
+                              <img src={url} alt="" className="w-full h-full object-cover" />
+                            )}
+                            {idx === 0 && (
+                              <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">Cover</span>
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-black/60 opacity-0 group-hover:opacity-100 transition">
+                              <div className="flex gap-1">
+                                <button type="button" onClick={() => moveImage(idx, -1)} disabled={idx === 0} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">←</button>
+                                <button type="button" onClick={() => moveImage(idx, 1)} disabled={idx === (editing.images?.length ?? 0) - 1} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">→</button>
+                              </div>
+                              <button type="button" onClick={() => removeImageAt(idx)} className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground">
+                                <Trash2 className="w-3 h-3" />
+                              </button>
                             </div>
-                            <button type="button" onClick={() => removeImageAt(idx)} className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground">
-                              <Trash2 className="w-3 h-3" />
-                            </button>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                   <input
@@ -305,7 +392,19 @@ function AdminProducts() {
                       e.target.value = "";
                     }}
                   />
-                  <div className="flex items-center gap-3">
+                  <input
+                    ref={mediaInputRef}
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime,image/gif"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const fs = e.target.files;
+                      if (fs && fs.length) uploadMedia(fs);
+                      e.target.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -313,13 +412,22 @@ function AdminProducts() {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold disabled:opacity-60"
                     >
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {uploading ? "Uploading..." : (editing.images?.length ?? 0) > 0 ? "Add more images" : "Upload images"}
+                      {uploading ? "Uploading..." : "Upload images"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => mediaInputRef.current?.click()}
+                      disabled={uploadingMedia}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-gold/30 hover:border-gold text-sm font-semibold disabled:opacity-60"
+                    >
+                      {uploadingMedia ? <Loader2 className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4" />}
+                      {uploadingMedia ? "Uploading..." : "Upload MP4 / GIF"}
                     </button>
                     {(editing.images?.length ?? 0) === 0 && (
                       <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Upload multiple images for the product carousel. Photos are auto-cropped to square and compressed under 300 KB before saving.</p>
+                  <p className="text-[11px] text-muted-foreground">Photos auto-crop to square &amp; compress under 300 KB. MP4 (max 50 MB) autoplays muted; GIFs loop in the gallery.</p>
                 </div>
               </Field>
               <Field label="Description">
