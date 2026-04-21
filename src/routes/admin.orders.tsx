@@ -200,12 +200,22 @@ function AdminOrders() {
   );
 }
 
+const EMIRATES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"];
+
 function OrderModal({ order, onClose, onSaved }: { order: Order; onClose: () => void; onSaved: (o: Order) => void }) {
   const [status, setStatus] = useState<Status>(order.status);
   const [tracking, setTracking] = useState(order.tracking_number ?? "");
   const [courier, setCourier] = useState(order.courier_name ?? "");
   const [eta, setEta] = useState(order.estimated_delivery ?? "");
+  const [customerName, setCustomerName] = useState(order.customer_name);
+  const [phone, setPhone] = useState(order.phone);
+  const [address, setAddress] = useState(order.address);
+  const [city, setCity] = useState(order.city);
+  const [emirate, setEmirate] = useState(order.emirate);
+  const [postal, setPostal] = useState(order.postal_code ?? "");
+  const [notes, setNotes] = useState(order.notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   const save = async () => {
     setSaving(true);
@@ -214,6 +224,13 @@ function OrderModal({ order, onClose, onSaved }: { order: Order; onClose: () => 
       tracking_number: tracking.trim() || null,
       courier_name: courier.trim() || null,
       estimated_delivery: eta || null,
+      customer_name: customerName.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      city: city.trim(),
+      emirate,
+      postal_code: postal.trim() || null,
+      notes: notes.trim() || null,
     };
     const { data, error } = await supabase.from("orders").update(payload).eq("id", order.id).select().maybeSingle();
     setSaving(false);
@@ -223,7 +240,10 @@ function OrderModal({ order, onClose, onSaved }: { order: Order; onClose: () => 
     }
     toast.success("Order updated");
     onSaved(data as unknown as Order);
+    setEditMode(false);
   };
+
+  const fld = "w-full bg-card border border-gold/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in p-2 md:p-6" onClick={onClose}>
@@ -233,12 +253,42 @@ function OrderModal({ order, onClose, onSaved }: { order: Order; onClose: () => 
             <div className="text-xs text-muted-foreground">Order</div>
             <div className="font-display text-2xl text-gold">{order.order_number}</div>
           </div>
-          <button onClick={onClose} className="p-2 hover:text-gold"><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setEditMode((v) => !v)}
+              className="text-xs px-3 py-1.5 rounded-full glass border border-gold/30 hover:border-gold"
+            >
+              {editMode ? "Done editing" : "Edit details"}
+            </button>
+            <button onClick={onClose} className="p-2 hover:text-gold"><X className="w-5 h-5" /></button>
+          </div>
         </div>
         <div className="p-6 space-y-5">
-          <Info label="Customer" value={`${order.customer_name} · ${order.phone}`} />
-          <Info label="Address" value={`${order.address}, ${order.city}, ${order.emirate}${order.postal_code ? ` ${order.postal_code}` : ""}`} />
-          {order.notes && <Info label="Notes" value={order.notes} />}
+          {/* Customer & address — view or edit */}
+          {editMode ? (
+            <div className="space-y-3">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">Customer & Address</div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="Full name"><input value={customerName} onChange={(e) => setCustomerName(e.target.value)} className={fld} /></Field>
+                <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} className={fld} /></Field>
+                <div className="sm:col-span-2"><Field label="Address"><input value={address} onChange={(e) => setAddress(e.target.value)} className={fld} /></Field></div>
+                <Field label="City"><input value={city} onChange={(e) => setCity(e.target.value)} className={fld} /></Field>
+                <Field label="Emirate">
+                  <select value={emirate} onChange={(e) => setEmirate(e.target.value)} className={fld}>
+                    {EMIRATES.map((em) => <option key={em} value={em}>{em}</option>)}
+                  </select>
+                </Field>
+                <Field label="Postal code"><input value={postal} onChange={(e) => setPostal(e.target.value)} className={fld} /></Field>
+                <div className="sm:col-span-2"><Field label="Notes"><textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className={fld} /></Field></div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Info label="Customer" value={`${order.customer_name} · ${order.phone}`} />
+              <Info label="Address" value={`${order.address}, ${order.city}, ${order.emirate}${order.postal_code ? ` ${order.postal_code}` : ""}`} />
+              {order.notes && <Info label="Notes" value={order.notes} />}
+            </>
+          )}
 
           <div>
             <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Items</div>
@@ -257,25 +307,24 @@ function OrderModal({ order, onClose, onSaved }: { order: Order; onClose: () => 
             <span className="text-gold font-display text-lg">{formatAED(Number(order.total))}</span>
           </div>
 
-          {/* Tracking controls */}
           <div className="border-t border-gold/15 pt-5 space-y-3">
             <div className="text-xs text-muted-foreground uppercase tracking-wider">Update Order</div>
             <Field label="Status">
-              <select value={status} onChange={(e) => setStatus(e.target.value as Status)} className="w-full bg-card border border-gold/20 rounded-lg px-3 py-2 text-sm">
+              <select value={status} onChange={(e) => setStatus(e.target.value as Status)} className={fld}>
                 {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
               </select>
             </Field>
             <Field label="Courier">
-              <select value={courier} onChange={(e) => setCourier(e.target.value)} className="w-full bg-card border border-gold/20 rounded-lg px-3 py-2 text-sm">
+              <select value={courier} onChange={(e) => setCourier(e.target.value)} className={fld}>
                 <option value="">Select courier…</option>
                 {COURIERS.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </Field>
             <Field label="Tracking Number">
-              <input value={tracking} onChange={(e) => setTracking(e.target.value)} placeholder="e.g. 1234567890" className="w-full bg-card border border-gold/20 rounded-lg px-3 py-2 text-sm" />
+              <input value={tracking} onChange={(e) => setTracking(e.target.value)} placeholder="e.g. 1234567890" className={fld} />
             </Field>
             <Field label="Estimated Delivery">
-              <input type="date" value={eta} onChange={(e) => setEta(e.target.value)} className="w-full bg-card border border-gold/20 rounded-lg px-3 py-2 text-sm" />
+              <input type="date" value={eta} onChange={(e) => setEta(e.target.value)} className={fld} />
             </Field>
             <button onClick={save} disabled={saving} className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold disabled:opacity-60">
               <Save className="w-4 h-4" /> {saving ? "Saving…" : "Save Changes"}
