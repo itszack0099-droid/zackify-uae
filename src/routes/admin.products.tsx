@@ -120,6 +120,46 @@ function AdminProducts() {
     setUploading(false);
   };
 
+  // Upload MP4/GIF/video media to product-media bucket and append to images[]
+  const uploadMedia = async (files: FileList | File[]) => {
+    if (!editing) return;
+    const list = Array.from(files);
+    if (!list.length) return;
+    setUploadingMedia(true);
+    const uploaded: string[] = [];
+    for (const f of list) {
+      const okType = f.type.startsWith("video/") || f.type === "image/gif";
+      if (!okType) {
+        toast.error(`${f.name} must be an MP4, video, or GIF`);
+        continue;
+      }
+      if (f.size > 50 * 1024 * 1024) {
+        toast.error(`${f.name} is over 50MB`);
+        continue;
+      }
+      const ext = f.name.split(".").pop()?.toLowerCase() || (f.type === "image/gif" ? "gif" : "mp4");
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("product-media").upload(fileName, f, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: f.type,
+      });
+      if (upErr) {
+        console.error("media upload failed:", upErr);
+        toast.error(upErr.message);
+        continue;
+      }
+      const { data } = supabase.storage.from("product-media").getPublicUrl(fileName);
+      uploaded.push(data.publicUrl);
+    }
+    if (uploaded.length) {
+      const merged = [...(editing.images ?? []), ...uploaded];
+      setEditing({ ...editing, images: merged, image_url: editing.image_url || merged[0] });
+      toast.success(`${uploaded.length} media file${uploaded.length > 1 ? "s" : ""} uploaded`);
+    }
+    setUploadingMedia(false);
+  };
+
   const removeImageAt = (idx: number) => {
     if (!editing) return;
     const next = (editing.images ?? []).filter((_, i) => i !== idx);
