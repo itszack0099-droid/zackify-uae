@@ -12,12 +12,13 @@ type Result = {
 };
 
 const REQUIRED = ["name", "description", "price", "discount_price", "category", "stock", "image_url"] as const;
+// `sku` is optional in CSV — auto-generated if blank
 
 const SAMPLE_CSV =
-  "name,description,price,discount_price,category,stock,image_url\n" +
-  "Smart Watch,Premium fitness watch with heart-rate monitor,79,59,Electronics,10,https://example.com/watch.jpg\n" +
-  "Wireless Earbuds,Noise-cancelling earbuds with charging case,129,99,Electronics,25,https://example.com/earbuds.jpg\n" +
-  'Luxury Perfume,"Long-lasting oud fragrance, 100ml",249,,Beauty,15,https://example.com/perfume.jpg\n';
+  "name,sku,description,price,discount_price,category,stock,image_url\n" +
+  "Smart Watch,SKU-WATCH01,Premium fitness watch with heart-rate monitor,79,59,Electronics,10,https://example.com/watch.jpg\n" +
+  "Wireless Earbuds,,Noise-cancelling earbuds with charging case,129,99,Electronics,25,https://example.com/earbuds.jpg\n" +
+  'Luxury Perfume,,"Long-lasting oud fragrance, 100ml",249,,Beauty,15,https://example.com/perfume.jpg\n';
 
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -146,9 +147,11 @@ export function CsvProductUpload({ onDone }: Props) {
           categorySlug = newSlug;
         }
 
+        const sku = header.includes("sku") ? (cells[idx("sku")] ?? "").trim() : "";
         const payload = {
           name,
           slug: slugify(name),
+          sku: sku || "",
           description: description || null,
           price,
           discount_price: discount,
@@ -156,7 +159,7 @@ export function CsvProductUpload({ onDone }: Props) {
           stock,
           image_url: imageUrl || null,
           images: imageUrl ? [imageUrl] : [],
-        };
+        } as never;
 
         const existingId = prodMap.get(name.toLowerCase());
         if (existingId) {
@@ -164,7 +167,7 @@ export function CsvProductUpload({ onDone }: Props) {
           if (upErr) errors.push(`Row ${rowNum}: update failed — ${upErr.message}`);
           else updated++;
         } else {
-          const { data: ins, error: insErr } = await supabase.from("products").insert(payload).select("id").maybeSingle();
+          const { data: ins, error: insErr } = await supabase.from("products").insert([payload]).select("id").maybeSingle();
           if (insErr) errors.push(`Row ${rowNum}: insert failed — ${insErr.message}`);
           else { added++; if (ins) prodMap.set(name.toLowerCase(), ins.id); }
         }

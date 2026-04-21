@@ -13,6 +13,7 @@ export const Route = createFileRoute("/admin/products")({
 
 type Product = {
   id: string;
+  sku: string;
   name: string;
   slug: string;
   description: string | null;
@@ -33,7 +34,7 @@ type Category = { slug: string; name: string };
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const empty: Partial<Product> = {
-  name: "", slug: "", description: "", price: 0, discount_price: null, image_url: "",
+  name: "", slug: "", sku: "", description: "", price: 0, discount_price: null, image_url: "",
   images: [], category_slug: "", stock: 0, featured: false, hot_deal: false, features: [],
 };
 
@@ -44,6 +45,7 @@ function AdminProducts() {
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [featuresStr, setFeaturesStr] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [filterText, setFilterText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
@@ -143,6 +145,7 @@ function AdminProducts() {
     const payload = {
       name: editing.name,
       slug: editing.slug || slugify(editing.name),
+      sku: editing.sku?.trim() || "",
       description: editing.description || null,
       features: featuresStr.split("\n").map((s) => s.trim()).filter(Boolean),
       price: Number(editing.price),
@@ -154,10 +157,10 @@ function AdminProducts() {
       featured: !!editing.featured,
       hot_deal: !!editing.hot_deal,
       deal_ends_at: editing.deal_ends_at || null,
-    };
+    } as never;
     const query = editing.id
       ? supabase.from("products").update(payload).eq("id", editing.id).select()
-      : supabase.from("products").insert(payload).select();
+      : supabase.from("products").insert([payload]).select();
     const { data, error } = await query;
     if (error) {
       console.error("Product save failed:", error);

@@ -102,8 +102,10 @@ export type Database = {
         Row: {
           address: string
           city: string
+          confirm_token: string
           courier_name: string | null
           created_at: string
+          customer_email: string | null
           customer_name: string
           delivery_date: string | null
           emirate: string
@@ -124,8 +126,10 @@ export type Database = {
         Insert: {
           address: string
           city: string
+          confirm_token?: string
           courier_name?: string | null
           created_at?: string
+          customer_email?: string | null
           customer_name: string
           delivery_date?: string | null
           emirate: string
@@ -146,8 +150,10 @@ export type Database = {
         Update: {
           address?: string
           city?: string
+          confirm_token?: string
           courier_name?: string | null
           created_at?: string
+          customer_email?: string | null
           customer_name?: string
           delivery_date?: string | null
           emirate?: string
@@ -183,6 +189,7 @@ export type Database = {
           name: string
           price: number
           rating: number | null
+          sku: string
           slug: string
           stock: number
           updated_at: string
@@ -202,6 +209,7 @@ export type Database = {
           name: string
           price: number
           rating?: number | null
+          sku: string
           slug: string
           stock?: number
           updated_at?: string
@@ -221,6 +229,7 @@ export type Database = {
           name?: string
           price?: number
           rating?: number | null
+          sku?: string
           slug?: string
           stock?: number
           updated_at?: string
@@ -367,6 +376,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      gen_product_sku: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
