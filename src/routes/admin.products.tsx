@@ -45,7 +45,7 @@ function AdminProducts() {
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [featuresStr, setFeaturesStr] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [filterText, setFilterText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
@@ -145,6 +145,7 @@ function AdminProducts() {
     const payload = {
       name: editing.name,
       slug: editing.slug || slugify(editing.name),
+      sku: editing.sku?.trim() || "",
       description: editing.description || null,
       features: featuresStr.split("\n").map((s) => s.trim()).filter(Boolean),
       price: Number(editing.price),
@@ -156,7 +157,7 @@ function AdminProducts() {
       featured: !!editing.featured,
       hot_deal: !!editing.hot_deal,
       deal_ends_at: editing.deal_ends_at || null,
-    };
+    } as never;
     const query = editing.id
       ? supabase.from("products").update(payload).eq("id", editing.id).select()
       : supabase.from("products").insert([payload]).select();

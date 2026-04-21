@@ -147,9 +147,11 @@ export function CsvProductUpload({ onDone }: Props) {
           categorySlug = newSlug;
         }
 
+        const sku = header.includes("sku") ? (cells[idx("sku")] ?? "").trim() : "";
         const payload = {
           name,
           slug: slugify(name),
+          sku: sku || "",
           description: description || null,
           price,
           discount_price: discount,
@@ -157,7 +159,7 @@ export function CsvProductUpload({ onDone }: Props) {
           stock,
           image_url: imageUrl || null,
           images: imageUrl ? [imageUrl] : [],
-        };
+        } as never;
 
         const existingId = prodMap.get(name.toLowerCase());
         if (existingId) {
