@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2, Search, Film } from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 import { squareCompress } from "@/lib/imageCompress";
@@ -45,8 +45,10 @@ function AdminProducts() {
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [featuresStr, setFeaturesStr] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [filterText, setFilterText] = useState("");
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [search, setSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const [p, c] = await Promise.all([
