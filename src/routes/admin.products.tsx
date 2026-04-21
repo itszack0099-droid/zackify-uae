@@ -157,7 +157,7 @@ function AdminProducts() {
     };
     const query = editing.id
       ? supabase.from("products").update(payload).eq("id", editing.id).select()
-      : supabase.from("products").insert(payload).select();
+      : supabase.from("products").insert([payload]).select();
     const { data, error } = await query;
     if (error) {
       console.error("Product save failed:", error);

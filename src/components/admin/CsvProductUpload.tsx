@@ -164,7 +164,7 @@ export function CsvProductUpload({ onDone }: Props) {
           if (upErr) errors.push(`Row ${rowNum}: update failed — ${upErr.message}`);
           else updated++;
         } else {
-          const { data: ins, error: insErr } = await supabase.from("products").insert(payload).select("id").maybeSingle();
+          const { data: ins, error: insErr } = await supabase.from("products").insert([payload]).select("id").maybeSingle();
           if (insErr) errors.push(`Row ${rowNum}: insert failed — ${insErr.message}`);
           else { added++; if (ins) prodMap.set(name.toLowerCase(), ins.id); }
         }

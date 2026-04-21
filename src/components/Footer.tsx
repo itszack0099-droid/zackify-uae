@@ -76,9 +76,9 @@ export function Footer() {
         <div>
           <h4 className="font-display text-gold mb-3 text-sm uppercase tracking-wider">{t("footer.shop")}</h4>
           <ul className="space-y-2 text-sm text-foreground/70">
-            <li><Link to="/category/car-accessories" className="hover:text-gold transition-colors">{t("nav.car")}</Link></li>
-            <li><Link to="/category/gym-fitness" className="hover:text-gold transition-colors">{t("nav.gym")}</Link></li>
-            <li><Link to="/category/phone-accessories" className="hover:text-gold transition-colors">{t("nav.phone")}</Link></li>
+            <li><Link to="/category/$slug" params={{ slug: "car-accessories" }} className="hover:text-gold transition-colors">{t("nav.car")}</Link></li>
+            <li><Link to="/category/$slug" params={{ slug: "gym-fitness" }} className="hover:text-gold transition-colors">{t("nav.gym")}</Link></li>
+            <li><Link to="/category/$slug" params={{ slug: "phone-accessories" }} className="hover:text-gold transition-colors">{t("nav.phone")}</Link></li>
             <li><Link to="/hot-deals" className="hover:text-gold transition-colors">{t("nav.deals")}</Link></li>
           </ul>
         </div>

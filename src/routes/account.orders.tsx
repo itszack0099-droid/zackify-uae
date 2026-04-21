@@ -148,6 +148,7 @@ function OrdersPage() {
           </div>
           <Link
             to="/account"
+            search={{}}
             className="text-sm text-gold hover:underline hidden sm:inline"
           >
             ← Account

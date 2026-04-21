@@ -88,7 +88,8 @@ function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link
-                  to="/category/car-accessories"
+                  to="/category/$slug"
+                  params={{ slug: "car-accessories" }}
                   className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-105 transition-transform"
                 >
                   {t("home.shopNow")}
@@ -164,7 +165,7 @@ function HomePage() {
             <div className="text-xs text-gold uppercase tracking-widest mb-2">{t("home.handpicked")}</div>
             <h2 className="font-display text-3xl md:text-4xl">{t("home.featured")}</h2>
           </div>
-          <Link to="/category/car-accessories" className="hidden sm:flex items-center gap-1.5 text-sm text-gold hover:gap-2 transition-all">
+          <Link to="/category/$slug" params={{ slug: "car-accessories" }} className="hidden sm:flex items-center gap-1.5 text-sm text-gold hover:gap-2 transition-all">
             {t("common.viewAll")} <ArrowRight className="w-4 h-4 rtl-flip" />
           </Link>
         </div>
