@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatAED } from "@/lib/cart";
 import { toast } from "sonner";
-import { Eye, X, Save } from "lucide-react";
+import { Eye, X, Save, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
@@ -96,7 +96,15 @@ function AdminOrders() {
     if (selected?.id === id) setSelected({ ...selected, status });
   };
 
-  const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  const deleteOrder = async (id: string, num: string) => {
+    if (!confirm(`Delete order ${num}? This cannot be undone.`)) return;
+    const { error, data } = await supabase.from("orders").delete().eq("id", id).select();
+    if (error) { console.error(error); return toast.error("Failed to delete order"); }
+    if (!data || data.length === 0) return toast.error("Delete blocked — admin permissions required");
+    toast.success("Order deleted");
+    setOrders((prev) => prev.filter((o) => o.id !== id));
+    if (selected?.id === id) setSelected(null);
+  };
 
   return (
     <div className="space-y-6">
