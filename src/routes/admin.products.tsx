@@ -349,23 +349,35 @@ function AdminProducts() {
                 <div className="space-y-3">
                   {(editing.images?.length ?? 0) > 0 && (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {(editing.images ?? []).map((url, idx) => (
-                        <div key={`${url}-${idx}`} className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square">
-                          <img src={url} alt="" className="w-full h-full object-cover" />
-                          {idx === 0 && (
-                            <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">Cover</span>
-                          )}
-                          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-black/60 opacity-0 group-hover:opacity-100 transition">
-                            <div className="flex gap-1">
-                              <button type="button" onClick={() => moveImage(idx, -1)} disabled={idx === 0} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">←</button>
-                              <button type="button" onClick={() => moveImage(idx, 1)} disabled={idx === (editing.images?.length ?? 0) - 1} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">→</button>
+                      {(editing.images ?? []).map((url, idx) => {
+                        const isVid = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+                        return (
+                          <div key={`${url}-${idx}`} className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square">
+                            {isVid ? (
+                              <>
+                                <video src={url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+                                <div className="absolute top-1 right-1 text-[9px] uppercase bg-black/60 text-white px-1.5 py-0.5 rounded flex items-center gap-1">
+                                  <Film className="w-2.5 h-2.5" /> MP4
+                                </div>
+                              </>
+                            ) : (
+                              <img src={url} alt="" className="w-full h-full object-cover" />
+                            )}
+                            {idx === 0 && (
+                              <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">Cover</span>
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-black/60 opacity-0 group-hover:opacity-100 transition">
+                              <div className="flex gap-1">
+                                <button type="button" onClick={() => moveImage(idx, -1)} disabled={idx === 0} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">←</button>
+                                <button type="button" onClick={() => moveImage(idx, 1)} disabled={idx === (editing.images?.length ?? 0) - 1} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">→</button>
+                              </div>
+                              <button type="button" onClick={() => removeImageAt(idx)} className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground">
+                                <Trash2 className="w-3 h-3" />
+                              </button>
                             </div>
-                            <button type="button" onClick={() => removeImageAt(idx)} className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground">
-                              <Trash2 className="w-3 h-3" />
-                            </button>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                   <input
@@ -380,7 +392,19 @@ function AdminProducts() {
                       e.target.value = "";
                     }}
                   />
-                  <div className="flex items-center gap-3">
+                  <input
+                    ref={mediaInputRef}
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime,image/gif"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const fs = e.target.files;
+                      if (fs && fs.length) uploadMedia(fs);
+                      e.target.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -388,13 +412,22 @@ function AdminProducts() {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold disabled:opacity-60"
                     >
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {uploading ? "Uploading..." : (editing.images?.length ?? 0) > 0 ? "Add more images" : "Upload images"}
+                      {uploading ? "Uploading..." : "Upload images"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => mediaInputRef.current?.click()}
+                      disabled={uploadingMedia}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-gold/30 hover:border-gold text-sm font-semibold disabled:opacity-60"
+                    >
+                      {uploadingMedia ? <Loader2 className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4" />}
+                      {uploadingMedia ? "Uploading..." : "Upload MP4 / GIF"}
                     </button>
                     {(editing.images?.length ?? 0) === 0 && (
                       <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Upload multiple images for the product carousel. Photos are auto-cropped to square and compressed under 300 KB before saving.</p>
+                  <p className="text-[11px] text-muted-foreground">Photos auto-crop to square &amp; compress under 300 KB. MP4 (max 50 MB) autoplays muted; GIFs loop in the gallery.</p>
                 </div>
               </Field>
               <Field label="Description">
