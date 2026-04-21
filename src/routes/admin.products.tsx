@@ -337,6 +337,14 @@ function AdminProducts() {
               <Field label="Slug">
                 <input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inp} />
               </Field>
+              <Field label="SKU (leave blank to auto-generate)">
+                <input
+                  value={editing.sku ?? ""}
+                  onChange={(e) => setEditing({ ...editing, sku: e.target.value })}
+                  placeholder="e.g. SKU-WATCH01 — auto-generated if empty"
+                  className={`${inp} font-mono`}
+                />
+              </Field>
               <Field label="Product Images (first one is the cover)">
                 <div className="space-y-3">
                   {(editing.images?.length ?? 0) > 0 && (
