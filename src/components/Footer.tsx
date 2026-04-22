@@ -90,7 +90,6 @@ export function Footer() {
             <li><Link to="/return-request" className="hover:text-gold transition-colors">{t("footer.requestReturn")}</Link></li>
             <li><Link to="/contact" className="hover:text-gold transition-colors">{t("footer.contact")}</Link></li>
             <li><a href={WHATSAPP_URL} target="_blank" rel="noopener" className="hover:text-gold transition-colors">{t("footer.whatsapp")}</a></li>
-            <li><Link to="/admin" className="hover:text-gold transition-colors">{t("footer.admin")}</Link></li>
           </ul>
         </div>
       </div>

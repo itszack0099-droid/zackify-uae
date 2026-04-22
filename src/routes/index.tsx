@@ -88,8 +88,7 @@ function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link
-                  to="/category/$slug"
-                  params={{ slug: "car-accessories" }}
+                  to="/products"
                   className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-105 transition-transform"
                 >
                   {t("home.shopNow")}

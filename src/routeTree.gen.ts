@@ -13,6 +13,7 @@ import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ReturnRequestRouteImport } from './routes/return-request'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as OrderSuccessRouteImport } from './routes/order-success'
 import { Route as HotDealsRouteImport } from './routes/hot-deals'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -51,6 +52,11 @@ const SearchRoute = SearchRouteImport.update({
 const ReturnRequestRoute = ReturnRequestRouteImport.update({
   id: '/return-request',
   path: '/return-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrderSuccessRoute = OrderSuccessRouteImport.update({
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/hot-deals': typeof HotDealsRoute
   '/order-success': typeof OrderSuccessRoute
+  '/products': typeof ProductsRoute
   '/return-request': typeof ReturnRequestRoute
   '/search': typeof SearchRoute
   '/track-order': typeof TrackOrderRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/hot-deals': typeof HotDealsRoute
   '/order-success': typeof OrderSuccessRoute
+  '/products': typeof ProductsRoute
   '/return-request': typeof ReturnRequestRoute
   '/search': typeof SearchRoute
   '/track-order': typeof TrackOrderRoute
@@ -208,6 +216,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/hot-deals': typeof HotDealsRoute
   '/order-success': typeof OrderSuccessRoute
+  '/products': typeof ProductsRoute
   '/return-request': typeof ReturnRequestRoute
   '/search': typeof SearchRoute
   '/track-order': typeof TrackOrderRoute
@@ -235,6 +244,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/hot-deals'
     | '/order-success'
+    | '/products'
     | '/return-request'
     | '/search'
     | '/track-order'
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/hot-deals'
     | '/order-success'
+    | '/products'
     | '/return-request'
     | '/search'
     | '/track-order'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/hot-deals'
     | '/order-success'
+    | '/products'
     | '/return-request'
     | '/search'
     | '/track-order'
@@ -310,6 +322,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   HotDealsRoute: typeof HotDealsRoute
   OrderSuccessRoute: typeof OrderSuccessRoute
+  ProductsRoute: typeof ProductsRoute
   ReturnRequestRoute: typeof ReturnRequestRoute
   SearchRoute: typeof SearchRoute
   TrackOrderRoute: typeof TrackOrderRoute
@@ -346,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/return-request'
       fullPath: '/return-request'
       preLoaderRoute: typeof ReturnRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order-success': {
@@ -528,6 +548,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   HotDealsRoute: HotDealsRoute,
   OrderSuccessRoute: OrderSuccessRoute,
+  ProductsRoute: ProductsRoute,
   ReturnRequestRoute: ReturnRequestRoute,
   SearchRoute: SearchRoute,
   TrackOrderRoute: TrackOrderRoute,
