@@ -45,10 +45,8 @@ function AdminProducts() {
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [featuresStr, setFeaturesStr] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [search, setSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const [p, c] = await Promise.all([
@@ -69,42 +67,73 @@ function AdminProducts() {
     setFeaturesStr((p.features ?? []).join("\n"));
   };
 
-  const uploadImages = async (files: FileList | File[]) => {
+  // Single unified uploader: handles photos (auto-cropped), MP4/video, and GIFs.
+  // Photos go to product-images bucket; videos & gifs go to product-media bucket.
+  const uploadMedia = async (files: FileList | File[]) => {
     if (!editing) return;
     const list = Array.from(files);
     if (!list.length) return;
     setUploading(true);
     const uploaded: string[] = [];
     for (const raw of list) {
-      if (!raw.type.startsWith("image/")) {
-        toast.error(`${raw.name} is not an image`);
+      const isImage = raw.type.startsWith("image/") && raw.type !== "image/gif";
+      const isVideo = raw.type.startsWith("video/");
+      const isGif = raw.type === "image/gif";
+
+      if (!isImage && !isVideo && !isGif) {
+        toast.error(`${raw.name} is not a supported media file`);
         continue;
       }
-      if (raw.size > 20 * 1024 * 1024) {
-        toast.error(`${raw.name} is over 20MB`);
+
+      const sizeLimit = isImage ? 20 * 1024 * 1024 : 50 * 1024 * 1024;
+      if (raw.size > sizeLimit) {
+        toast.error(`${raw.name} is over ${sizeLimit / 1024 / 1024}MB`);
         continue;
       }
-      let processed: File;
+
       try {
-        // Auto-crop to square + compress under 300KB
-        processed = await squareCompress(raw, { maxBytes: 300 * 1024, size: 1200, mime: "image/jpeg" });
-        console.log(`[upload] ${raw.name}: ${(raw.size / 1024).toFixed(0)}KB → ${(processed.size / 1024).toFixed(0)}KB`);
+        if (isImage) {
+          let processed: File;
+          try {
+            processed = await squareCompress(raw, { maxBytes: 300 * 1024, size: 1200, mime: "image/jpeg" });
+            console.log(`[upload] ${raw.name}: ${(raw.size / 1024).toFixed(0)}KB → ${(processed.size / 1024).toFixed(0)}KB`);
+          } catch (err) {
+            console.error("Image compression failed, uploading original:", err);
+            processed = raw;
+          }
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+          const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, processed, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: processed.type,
+          });
+          if (upErr) {
+            toast.error(upErr.message);
+            continue;
+          }
+          const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+          uploaded.push(data.publicUrl);
+        } else {
+          // Video or GIF → product-media bucket
+          const ext = raw.name.split(".").pop()?.toLowerCase() || (isGif ? "gif" : "mp4");
+          const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+          const { error: upErr } = await supabase.storage.from("product-media").upload(fileName, raw, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: raw.type,
+          });
+          if (upErr) {
+            console.error("media upload failed:", upErr);
+            toast.error(upErr.message);
+            continue;
+          }
+          const { data } = supabase.storage.from("product-media").getPublicUrl(fileName);
+          uploaded.push(data.publicUrl);
+        }
       } catch (err) {
-        console.error("Image compression failed, uploading original:", err);
-        processed = raw;
+        console.error("Upload failed for", raw.name, err);
+        toast.error(`Failed to upload ${raw.name}`);
       }
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
-      const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, processed, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: processed.type,
-      });
-      if (upErr) {
-        toast.error(upErr.message);
-        continue;
-      }
-      const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
-      uploaded.push(data.publicUrl);
     }
     if (uploaded.length) {
       const existing = editing.images ?? [];
@@ -112,52 +141,11 @@ function AdminProducts() {
       setEditing({
         ...editing,
         images: merged,
-        // Keep image_url in sync with the first image (used in listings/cards)
         image_url: editing.image_url || merged[0],
       });
-      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded — auto-cropped & compressed`);
+      toast.success(`${uploaded.length} file${uploaded.length > 1 ? "s" : ""} uploaded`);
     }
     setUploading(false);
-  };
-
-  // Upload MP4/GIF/video media to product-media bucket and append to images[]
-  const uploadMedia = async (files: FileList | File[]) => {
-    if (!editing) return;
-    const list = Array.from(files);
-    if (!list.length) return;
-    setUploadingMedia(true);
-    const uploaded: string[] = [];
-    for (const f of list) {
-      const okType = f.type.startsWith("video/") || f.type === "image/gif";
-      if (!okType) {
-        toast.error(`${f.name} must be an MP4, video, or GIF`);
-        continue;
-      }
-      if (f.size > 50 * 1024 * 1024) {
-        toast.error(`${f.name} is over 50MB`);
-        continue;
-      }
-      const ext = f.name.split(".").pop()?.toLowerCase() || (f.type === "image/gif" ? "gif" : "mp4");
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("product-media").upload(fileName, f, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: f.type,
-      });
-      if (upErr) {
-        console.error("media upload failed:", upErr);
-        toast.error(upErr.message);
-        continue;
-      }
-      const { data } = supabase.storage.from("product-media").getPublicUrl(fileName);
-      uploaded.push(data.publicUrl);
-    }
-    if (uploaded.length) {
-      const merged = [...(editing.images ?? []), ...uploaded];
-      setEditing({ ...editing, images: merged, image_url: editing.image_url || merged[0] });
-      toast.success(`${uploaded.length} media file${uploaded.length > 1 ? "s" : ""} uploaded`);
-    }
-    setUploadingMedia(false);
   };
 
   const removeImageAt = (idx: number) => {
