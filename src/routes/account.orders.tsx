@@ -59,13 +59,29 @@ function OrdersPage() {
       return;
     }
     (async () => {
-      // Match by customer email (orders table has no user_id; we filter by phone+email pattern)
-      // Best-effort: fetch all orders where the customer email/phone matches the signed-in user's email
-      const { data, error } = await supabase
+      // Fetch orders matched by either:
+      //  1) the signed-in user's email saved on the order at checkout, OR
+      //  2) order numbers stored locally during this browser's checkout sessions.
+      const mineRaw = typeof window !== "undefined" ? localStorage.getItem("zackify_my_orders_v1") : null;
+      const mineNums: string[] = mineRaw ? JSON.parse(mineRaw) : [];
+
+      const orFilter = [
+        user.email ? `customer_email.eq.${user.email}` : null,
+        mineNums.length ? `order_number.in.(${mineNums.map((n) => `"${n}"`).join(",")})` : null,
+      ]
+        .filter(Boolean)
+        .join(",");
+
+      let query = supabase
         .from("orders")
-        .select("id,order_number,status,total,subtotal,created_at,customer_name,emirate,city,items,phone")
+        .select("id,order_number,status,total,subtotal,created_at,customer_name,emirate,city,items,phone,customer_email")
         .order("created_at", { ascending: false })
         .limit(50);
+
+      if (orFilter) query = query.or(orFilter);
+      else { setOrders([]); setLoading(false); return; }
+
+      const { data, error } = await query;
 
       if (error) {
         toast.error("Could not load your orders");
@@ -73,13 +89,7 @@ function OrdersPage() {
         return;
       }
 
-      // Filter client-side to those that belong to this user (by email match in notes/phone is unreliable;
-      // we use localStorage of order numbers placed during this browser session as the source of truth)
-      const mineRaw = typeof window !== "undefined" ? localStorage.getItem("zackify_my_orders_v1") : null;
-      const mineNums: string[] = mineRaw ? JSON.parse(mineRaw) : [];
-      const filtered = (data ?? []).filter((o: any) => mineNums.includes(o.order_number));
-
-      setOrders(filtered as unknown as Order[]);
+      setOrders((data ?? []) as unknown as Order[]);
       setLoading(false);
     })();
   }, [user, authLoading, navigate]);
