@@ -371,19 +371,7 @@ function AdminProducts() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      const fs = e.target.files;
-                      if (fs && fs.length) uploadImages(fs);
-                      e.target.value = "";
-                    }}
-                  />
-                  <input
-                    ref={mediaInputRef}
-                    type="file"
-                    accept="video/mp4,video/webm,video/quicktime,image/gif"
+                    accept="image/*,video/mp4,video/webm,video/quicktime"
                     multiple
                     className="hidden"
                     onChange={(e) => {
@@ -400,22 +388,16 @@ function AdminProducts() {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold disabled:opacity-60"
                     >
                       {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {uploading ? "Uploading..." : "Upload images"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => mediaInputRef.current?.click()}
-                      disabled={uploadingMedia}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-gold/30 hover:border-gold text-sm font-semibold disabled:opacity-60"
-                    >
-                      {uploadingMedia ? <Loader2 className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4" />}
-                      {uploadingMedia ? "Uploading..." : "Upload MP4 / GIF"}
+                      {uploading ? "Uploading..." : "Upload media (Image · MP4 · GIF)"}
                     </button>
                     {(editing.images?.length ?? 0) === 0 && (
-                      <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
+                      <>
+                        <ImageIcon className="w-6 h-6 text-muted-foreground/40" />
+                        <Film className="w-6 h-6 text-muted-foreground/40" />
+                      </>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Photos auto-crop to square &amp; compress under 300 KB. MP4 (max 50 MB) autoplays muted; GIFs loop in the gallery.</p>
+                  <p className="text-[11px] text-muted-foreground">Photos auto-crop to square &amp; compress under 300 KB (max 20 MB). MP4 / GIF (max 50 MB) — videos autoplay muted, GIFs loop in the gallery.</p>
                 </div>
               </Field>
               <Field label="Description">
