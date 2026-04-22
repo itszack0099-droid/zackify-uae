@@ -4,7 +4,7 @@ import { ArrowRight, Truck, Banknote, Gem, RefreshCcw, Sparkles, Flame, Car, Dum
 import { Layout } from "@/components/Layout";
 import { ProductCard, type ProductLite } from "@/components/ProductCard";
 import { Countdown } from "@/components/Countdown";
-import { HeroShowcase } from "@/components/HeroShowcase";
+import heroBanner from "@/assets/hero-zackify-uae.png";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -60,21 +60,61 @@ function HomePage() {
 
   return (
     <Layout>
-      {/* HERO with cinematic UAE lifestyle showcase */}
+      {/* Transparent UAE flag background across the home page */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 -z-10 pointer-events-none opacity-[0.06] bg-no-repeat bg-center bg-cover"
+        style={{ backgroundImage: "url('/uae-flag.svg')" }}
+      />
+
+      {/* HERO — full-bleed static banner, edge-to-edge, no animation */}
+      <section className="relative w-full">
+        <img
+          src={heroBanner}
+          alt="Zackify.uae — Premium gear for men in the UAE"
+          className="block w-full h-auto select-none"
+          draggable={false}
+          fetchPriority="high"
+          decoding="async"
+        />
+
+        {/* Offer marquee — train-style scrolling text attached to the banner */}
+        <div className="w-full bg-gradient-gold text-deep-green border-y border-gold/40 overflow-hidden">
+          <div className="flex whitespace-nowrap py-3 animate-marquee will-change-transform">
+            {Array.from({ length: 2 }).map((_, dup) => (
+              <div key={dup} className="flex shrink-0 items-center">
+                {[
+                  "🔥 MEGA OFFER — Up to 60% OFF on Premium Gear",
+                  "🚚 FREE Cash on Delivery across the UAE",
+                  "⚡ 2–4 Day Express Delivery",
+                  "💎 Premium Quality, Unbeatable Prices",
+                  "🎁 Buy More Save More — Limited Time",
+                  "🔄 Easy 3-Day Returns",
+                  "📞 24/7 Customer Support",
+                ].map((msg, i) => (
+                  <span
+                    key={`${dup}-${i}`}
+                    className="px-8 font-display text-sm md:text-base font-bold tracking-wide uppercase flex items-center gap-3"
+                  >
+                    {msg}
+                    <span className="text-deep-green/50">•</span>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HERO TEXT / CTA */}
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 -z-10"
           style={{ background: "var(--gradient-radial-gold)" }}
         />
 
-        <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-10 pb-10">
-          {/* Cinematic showcase reel */}
-          <div className="animate-fade-in">
-            <HeroShowcase />
-          </div>
-
-          {/* Hero text */}
-          <div className="mt-8 md:mt-12 grid lg:grid-cols-[1.4fr_1fr] gap-10 items-center">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 pt-10 md:pt-14 pb-10">
+          <div className="grid lg:grid-cols-[1.4fr_1fr] gap-10 items-center">
             <div className="space-y-5 animate-fade-in-up">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-gold/30 text-xs text-gold">
                 <Sparkles className="w-3.5 h-3.5" /> {t("home.heroBadge")}
