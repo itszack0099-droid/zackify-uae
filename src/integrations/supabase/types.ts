@@ -122,6 +122,7 @@ export type Database = {
           total: number
           tracking_number: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           address: string
@@ -146,6 +147,7 @@ export type Database = {
           total: number
           tracking_number?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           address?: string
@@ -170,12 +172,14 @@ export type Database = {
           total?: number
           tracking_number?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
       products: {
         Row: {
           category_slug: string
+          colors: string[]
           created_at: string
           deal_ends_at: string | null
           description: string | null
@@ -196,6 +200,7 @@ export type Database = {
         }
         Insert: {
           category_slug: string
+          colors?: string[]
           created_at?: string
           deal_ends_at?: string | null
           description?: string | null
@@ -216,6 +221,7 @@ export type Database = {
         }
         Update: {
           category_slug?: string
+          colors?: string[]
           created_at?: string
           deal_ends_at?: string | null
           description?: string | null
