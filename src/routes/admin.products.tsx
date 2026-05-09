@@ -27,6 +27,7 @@ type Product = {
   featured: boolean;
   hot_deal: boolean;
   deal_ends_at: string | null;
+  colors: string[] | null;
 };
 
 type Category = { slug: string; name: string };
@@ -35,7 +36,7 @@ const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-"
 
 const empty: Partial<Product> = {
   name: "", slug: "", sku: "", description: "", price: 0, discount_price: null, image_url: "",
-  images: [], category_slug: "", stock: 0, featured: false, hot_deal: false, features: [],
+  images: [], category_slug: "", stock: 0, featured: false, hot_deal: false, features: [], colors: [],
 };
 
 function AdminProducts() {
@@ -44,6 +45,7 @@ function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [featuresStr, setFeaturesStr] = useState("");
+  const [colorsStr, setColorsStr] = useState("");
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,12 +61,13 @@ function AdminProducts() {
   };
   useEffect(() => { load(); }, []);
 
-  const startNew = () => { setEditing(empty); setFeaturesStr(""); };
+  const startNew = () => { setEditing(empty); setFeaturesStr(""); setColorsStr(""); };
   const startEdit = (p: Product) => {
     // Backfill images from legacy image_url so the gallery UI works for old products
     const images = (p.images && p.images.length > 0) ? p.images : (p.image_url ? [p.image_url] : []);
     setEditing({ ...p, images });
     setFeaturesStr((p.features ?? []).join("\n"));
+    setColorsStr((p.colors ?? []).join(", "));
   };
 
   // Single unified uploader: handles photos (auto-cropped), MP4/video, and GIFs.
@@ -187,6 +190,7 @@ function AdminProducts() {
       featured: !!editing.featured,
       hot_deal: !!editing.hot_deal,
       deal_ends_at: editing.deal_ends_at || null,
+      colors: colorsStr.split(",").map((s) => s.trim()).filter(Boolean),
     } as never;
     const query = editing.id
       ? supabase.from("products").update(payload).eq("id", editing.id).select()
@@ -405,6 +409,9 @@ function AdminProducts() {
               </Field>
               <Field label="Features (one per line)">
                 <textarea rows={3} value={featuresStr} onChange={(e) => setFeaturesStr(e.target.value)} className={inp} />
+              </Field>
+              <Field label="Colors (comma separated, e.g. Black, Silver, White)">
+                <input value={colorsStr} onChange={(e) => setColorsStr(e.target.value)} placeholder="Black, Silver, White" className={inp} />
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Category *">

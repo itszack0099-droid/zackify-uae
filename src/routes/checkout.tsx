@@ -127,6 +127,7 @@ function CheckoutPage() {
       .from("orders")
       .insert({
         ...parsed.data,
+        user_id: user?.id ?? null,
         customer_email: user?.email ?? null,
         items: items.map((i) => ({
           id: i.id,
