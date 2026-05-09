@@ -5,13 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart, formatAED } from "@/lib/cart";
 import {
-  Package,
-  Clock,
+  ArrowLeft,
+  Search as SearchIcon,
+  ChevronRight,
   CheckCircle2,
   Truck,
+  Clock,
   XCircle,
+  Package,
   RotateCcw,
-  ChevronRight,
   ShoppingBag,
   Inbox,
 } from "lucide-react";
@@ -35,15 +37,12 @@ type Order = {
   order_number: string;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
   total: number;
-  subtotal: number;
   created_at: string;
   customer_name: string;
-  emirate: string;
   city: string;
+  emirate: string;
   items: OrderItem[];
 };
-
-const STEPS = ["pending", "confirmed", "shipped", "delivered"] as const;
 
 function OrdersPage() {
   const { user, loading: authLoading } = useAuth();
@@ -51,6 +50,7 @@ function OrdersPage() {
   const { add } = useCart();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (authLoading) return;
@@ -59,54 +59,38 @@ function OrdersPage() {
       return;
     }
     (async () => {
-      // Fetch orders matched by either:
-      //  1) the signed-in user's email saved on the order at checkout, OR
-      //  2) order numbers stored locally during this browser's checkout sessions.
-      const mineRaw = typeof window !== "undefined" ? localStorage.getItem("zackify_my_orders_v1") : null;
-      const mineNums: string[] = mineRaw ? JSON.parse(mineRaw) : [];
-
-      const orFilter = [
-        user.email ? `customer_email.eq.${user.email}` : null,
-        mineNums.length ? `order_number.in.(${mineNums.map((n) => `"${n}"`).join(",")})` : null,
-      ]
-        .filter(Boolean)
-        .join(",");
-
-      let query = supabase
+      const { data, error } = await supabase
         .from("orders")
-        .select("id,order_number,status,total,subtotal,created_at,customer_name,emirate,city,items,phone,customer_email")
+        .select("id,order_number,status,total,created_at,customer_name,city,emirate,items")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (orFilter) query = query.or(orFilter);
-      else { setOrders([]); setLoading(false); return; }
-
-      const { data, error } = await query;
+        .limit(100);
 
       if (error) {
+        console.error(error);
         toast.error("Could not load your orders");
-        setLoading(false);
-        return;
+      } else {
+        setOrders((data ?? []) as unknown as Order[]);
       }
-
-      setOrders((data ?? []) as unknown as Order[]);
       setLoading(false);
     })();
   }, [user, authLoading, navigate]);
 
-  // Realtime live updates for the user's orders (incl. return status)
+  // Realtime updates for the user's orders
   useEffect(() => {
     if (!user) return;
     const channel = supabase
       .channel(`my-orders-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders" },
+        { event: "*", schema: "public", table: "orders", filter: `user_id=eq.${user.id}` },
         (payload) => {
-          const row = payload.new as { id: string } & Partial<Order>;
-          console.log("[realtime] my order updated", row);
-          setOrders((prev) => prev.map((o) => (o.id === row.id ? { ...o, ...row } as Order : o)));
-          if (row.status) toast.success(`Order ${row.order_number ?? ""} updated`);
+          if (payload.eventType === "INSERT") {
+            setOrders((prev) => [payload.new as unknown as Order, ...prev]);
+          } else if (payload.eventType === "UPDATE") {
+            const row = payload.new as { id: string } & Partial<Order>;
+            setOrders((prev) => prev.map((o) => (o.id === row.id ? ({ ...o, ...row } as Order) : o)));
+          }
         },
       )
       .subscribe();
@@ -116,13 +100,7 @@ function OrdersPage() {
   const reorder = (order: Order) => {
     order.items.forEach((it) => {
       add(
-        {
-          id: it.id,
-          name: it.name,
-          slug: it.slug,
-          price: it.price,
-          image: it.image ?? "",
-        },
+        { id: it.id, name: it.name, slug: it.slug, price: it.price, image: it.image ?? "" },
         it.qty,
       );
     });
@@ -130,14 +108,23 @@ function OrdersPage() {
     navigate({ to: "/cart" });
   };
 
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? orders.filter(
+        (o) =>
+          o.order_number.toLowerCase().includes(q) ||
+          o.items.some((it) => it.name.toLowerCase().includes(q)),
+      )
+    : orders;
+
   if (authLoading || loading) {
     return (
       <Layout>
-        <div className="max-w-4xl mx-auto px-6 py-16">
-          <div className="h-10 w-56 mb-6 rounded-lg animate-shimmer-bg" />
-          <div className="space-y-4">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <div className="h-10 w-40 mb-6 rounded-lg animate-shimmer-bg" />
+          <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-2xl animate-shimmer-bg" />
+              <div key={i} className="h-24 rounded-2xl animate-shimmer-bg" />
             ))}
           </div>
         </div>
@@ -147,44 +134,57 @@ function OrdersPage() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="flex items-center justify-between mb-8 animate-fade-in-up">
-          <div>
-            <div className="text-xs text-gold uppercase tracking-widest mb-1.5">My Account</div>
-            <h1 className="font-display text-3xl md:text-4xl">Order History</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {orders.length === 0 ? "You haven't placed any orders yet" : `${orders.length} order${orders.length === 1 ? "" : "s"}`}
-            </p>
-          </div>
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        {/* Mobile-app style header */}
+        <div className="flex items-center gap-3 py-3 mb-4">
           <Link
             to="/account"
             search={{ redirect: undefined }}
-            className="text-sm text-gold hover:underline hidden sm:inline"
+            className="p-2 -ml-2 rounded-full hover:bg-gold/10"
+            aria-label="Back"
           >
-            ← Account
+            <ArrowLeft className="w-5 h-5" />
           </Link>
+          <h1 className="font-display text-2xl">My Orders</h1>
         </div>
 
-        {orders.length === 0 ? (
-          <div className="glass rounded-3xl p-12 text-center gold-border animate-fade-in-up">
-            <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gold/10 flex items-center justify-center">
-              <Inbox className="w-10 h-10 text-gold" strokeWidth={1.5} />
+        {/* Search */}
+        <div className="relative mb-5">
+          <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search your orders here"
+            className="w-full pl-10 pr-4 py-3 rounded-2xl glass border border-gold/20 text-sm focus:outline-none focus:border-gold"
+          />
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="glass rounded-3xl p-10 text-center gold-border">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gold/10 flex items-center justify-center">
+              <Inbox className="w-8 h-8 text-gold" strokeWidth={1.5} />
             </div>
-            <h2 className="font-display text-2xl mb-2">No orders yet</h2>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
-              Start exploring our premium collection. Cash on Delivery available across the UAE.
+            <h2 className="font-display text-xl mb-2">
+              {orders.length === 0 ? "No orders yet" : "No matching orders"}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-5">
+              {orders.length === 0
+                ? "Place your first order — Cash on Delivery available across UAE."
+                : "Try a different search term."}
             </p>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-105 transition-transform"
-            >
-              <ShoppingBag className="w-4 h-4" /> Start Shopping
-            </Link>
+            {orders.length === 0 && (
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold"
+              >
+                <ShoppingBag className="w-4 h-4" /> Start Shopping
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="space-y-5">
-            {orders.map((order, idx) => (
-              <OrderCard key={order.id} order={order} index={idx} onReorder={() => reorder(order)} />
+          <div className="space-y-3">
+            {filtered.map((o, i) => (
+              <OrderRow key={o.id} order={o} index={i} onReorder={() => reorder(o)} />
             ))}
           </div>
         )}
@@ -193,150 +193,108 @@ function OrdersPage() {
   );
 }
 
-function OrderCard({ order, index, onReorder }: { order: Order; index: number; onReorder: () => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const cancelled = order.status === "cancelled";
-  const currentStep = cancelled ? -1 : STEPS.indexOf(order.status as typeof STEPS[number]);
+function OrderRow({ order, index, onReorder }: { order: Order; index: number; onReorder: () => void }) {
+  const first = order.items[0];
   const date = new Date(order.created_at).toLocaleDateString("en-AE", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+  const status = order.status;
+  const meta = STATUS_META[status];
 
   return (
     <div
       className="glass rounded-2xl gold-border overflow-hidden animate-fade-in-up"
-      style={{ animationDelay: `${index * 70}ms` }}
+      style={{ animationDelay: `${index * 60}ms` }}
     >
-      {/* Header */}
-      <button
-        onClick={() => setExpanded((e) => !e)}
-        className="w-full flex flex-wrap items-center gap-4 p-5 text-left hover:bg-gold/5 transition-colors"
+      <Link
+        to="/track-order"
+        search={{ num: order.order_number }}
+        className="flex items-center gap-3 p-3.5 hover:bg-gold/5 transition-colors"
       >
-        <div className="w-12 h-12 rounded-xl bg-gradient-gold flex items-center justify-center shadow-gold shrink-0">
-          <Package className="w-6 h-6 text-deep-green" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-display text-lg text-gold font-bold truncate">{order.order_number}</div>
-          <div className="text-xs text-muted-foreground">
-            {date} · {order.items.length} item{order.items.length === 1 ? "" : "s"} · {order.city}, {order.emirate}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="font-display text-lg text-gold font-bold">{formatAED(order.total)}</div>
-          <StatusBadge status={order.status} />
-        </div>
-        <ChevronRight
-          className={`w-5 h-5 text-muted-foreground transition-transform ${expanded ? "rotate-90" : ""}`}
-        />
-      </button>
-
-      {expanded && (
-        <div className="border-t border-gold/15 p-5 space-y-5 animate-fade-in">
-          {/* Timeline */}
-          {cancelled ? (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/30">
-              <XCircle className="w-5 h-5 text-destructive shrink-0" />
-              <div className="text-sm text-destructive">This order was cancelled.</div>
-            </div>
+        <div className="w-16 h-16 rounded-xl overflow-hidden bg-secondary shrink-0">
+          {first?.image ? (
+            <img src={first.image} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {STEPS.map((s, i) => {
-                const active = i <= currentStep;
-                const done = i < currentStep;
-                const Icon = i === 3 ? CheckCircle2 : i === 2 ? Truck : i === 1 ? Package : Clock;
-                return (
-                  <div key={s} className="relative text-center">
-                    {i > 0 && (
-                      <div
-                        className={`absolute top-5 right-1/2 w-full h-0.5 -z-0 ${
-                          done || active ? "bg-gradient-gold" : "bg-border"
-                        }`}
-                        style={{ transform: "translateX(50%)" }}
-                      />
-                    )}
-                    <div
-                      className={`relative w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center transition-all ${
-                        active
-                          ? "bg-gradient-gold text-deep-green shadow-gold"
-                          : "bg-secondary text-muted-foreground"
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <div
-                      className={`text-[11px] capitalize ${
-                        active ? "text-gold font-semibold" : "text-muted-foreground"
-                      }`}
-                    >
-                      {s}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="w-full h-full bg-gradient-to-br from-secondary to-card flex items-center justify-center">
+              <Package className="w-6 h-6 text-muted-foreground" />
             </div>
           )}
-
-          {/* Items */}
-          <div className="space-y-2.5">
-            {order.items.map((it, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-secondary shrink-0">
-                  {it.image ? (
-                    <img src={it.image} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-secondary to-card" />
-                  )}
-                </div>
-                <Link
-                  to="/product/$slug"
-                  params={{ slug: it.slug }}
-                  className="flex-1 min-w-0 hover:text-gold transition-colors"
-                >
-                  <div className="line-clamp-1">{it.name}</div>
-                  <div className="text-xs text-muted-foreground">Qty {it.qty}</div>
-                </Link>
-                <div className="text-gold font-medium whitespace-nowrap">
-                  {formatAED(it.price * it.qty)}
-                </div>
-              </div>
-            ))}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`font-semibold text-sm ${meta.titleClass}`}>{meta.title(date)}</div>
+          <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+            {first ? first.name : "—"}
+            {order.items.length > 1 && ` +${order.items.length - 1} more`}
           </div>
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-3 pt-2">
-            <button
-              onClick={onReorder}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold hover:scale-[1.02] transition-transform"
-            >
-              <RotateCcw className="w-4 h-4" /> Reorder
-            </button>
-            <Link
-              to="/track-order"
-              search={{ num: order.order_number }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass border border-gold/25 text-sm hover:border-gold transition-colors"
-            >
-              <Truck className="w-4 h-4" /> Track Order
-            </Link>
+          <div className="text-[11px] text-muted-foreground/80 mt-0.5">
+            {order.order_number} · <span className="text-gold font-medium">{formatAED(order.total)}</span>
           </div>
         </div>
-      )}
+        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+      </Link>
+
+      {/* Status strip */}
+      <div className={`flex items-center justify-between gap-3 px-4 py-2.5 border-t border-gold/15 ${meta.stripClass}`}>
+        <div className="flex items-center gap-2 text-xs">
+          <meta.Icon className="w-4 h-4" />
+          <span className="font-medium">{meta.label}</span>
+        </div>
+        <button
+          onClick={(e) => { e.preventDefault(); onReorder(); }}
+          className="text-[11px] inline-flex items-center gap-1 px-3 py-1 rounded-full glass border border-gold/30 hover:border-gold text-gold font-medium"
+        >
+          <RotateCcw className="w-3 h-3" /> Reorder
+        </button>
+      </div>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: Order["status"] }) {
-  const map = {
-    pending: { label: "Pending", cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
-    confirmed: { label: "Confirmed", cls: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-    shipped: { label: "Shipped", cls: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
-    delivered: { label: "Delivered", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
-    cancelled: { label: "Cancelled", cls: "bg-destructive/15 text-destructive border-destructive/30" },
-  } as const;
-  const m = map[status];
-  return (
-    <span className={`inline-block mt-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${m.cls}`}>
-      {m.label}
-    </span>
-  );
-}
+const STATUS_META: Record<
+  Order["status"],
+  {
+    label: string;
+    title: (date: string) => string;
+    titleClass: string;
+    stripClass: string;
+    Icon: typeof Clock;
+  }
+> = {
+  pending: {
+    label: "Order placed",
+    title: (d) => `Placed on ${d}`,
+    titleClass: "text-foreground",
+    stripClass: "bg-amber-500/5 text-amber-400",
+    Icon: Clock,
+  },
+  confirmed: {
+    label: "Confirmed",
+    title: (d) => `Confirmed on ${d}`,
+    titleClass: "text-foreground",
+    stripClass: "bg-blue-500/5 text-blue-400",
+    Icon: Package,
+  },
+  shipped: {
+    label: "Out for delivery",
+    title: (d) => `Shipped on ${d}`,
+    titleClass: "text-foreground",
+    stripClass: "bg-purple-500/5 text-purple-400",
+    Icon: Truck,
+  },
+  delivered: {
+    label: "Delivered",
+    title: (d) => `Delivered on ${d}`,
+    titleClass: "text-foreground",
+    stripClass: "bg-emerald-500/5 text-emerald-400",
+    Icon: CheckCircle2,
+  },
+  cancelled: {
+    label: "Cancelled",
+    title: (d) => `Cancelled on ${d}`,
+    titleClass: "text-destructive",
+    stripClass: "bg-destructive/5 text-destructive",
+    Icon: XCircle,
+  },
+};
