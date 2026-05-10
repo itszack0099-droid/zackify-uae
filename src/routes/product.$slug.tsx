@@ -93,26 +93,23 @@ function ProductPage() {
 
   const lineName = hasColors && selectedColor ? `${product.name} — ${selectedColor}` : product.name;
   const lineId = hasColors && selectedColor ? `${product.id}::${selectedColor}` : product.id;
+  const cartLine = {
+    id: lineId,
+    productId: product.id,
+    name: lineName,
+    slug: product.slug,
+    price: final,
+    image: product.image_url || "",
+    color: selectedColor || undefined,
+  };
 
   const handleAdd = () => {
-    add({
-      id: lineId,
-      name: lineName,
-      slug: product.slug,
-      price: final,
-      image: product.image_url || "",
-    }, qty);
+    add(cartLine, qty);
     toast.success("Added to cart", { description: `${qty} × ${lineName}` });
   };
 
   const handleBuyNow = () => {
-    add({
-      id: lineId,
-      name: lineName,
-      slug: product.slug,
-      price: final,
-      image: product.image_url || "",
-    }, qty);
+    add(cartLine, qty);
     navigate({ to: "/checkout" });
   };
 
