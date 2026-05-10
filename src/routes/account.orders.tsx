@@ -25,11 +25,13 @@ export const Route = createFileRoute("/account/orders")({
 
 type OrderItem = {
   id: string;
+  product_id?: string;
   name: string;
   slug: string;
   price: number;
   qty: number;
   image?: string;
+  color?: string | null;
 };
 
 type Order = {
@@ -100,7 +102,7 @@ function OrdersPage() {
   const reorder = (order: Order) => {
     order.items.forEach((it) => {
       add(
-        { id: it.id, name: it.name, slug: it.slug, price: it.price, image: it.image ?? "" },
+        { id: it.id, productId: it.product_id ?? it.id.split("::")[0], name: it.name, slug: it.slug, price: it.price, image: it.image ?? "", color: it.color ?? undefined },
         it.qty,
       );
     });
@@ -228,6 +230,7 @@ function OrderRow({ order, index, onReorder }: { order: Order; index: number; on
             {first ? first.name : "—"}
             {order.items.length > 1 && ` +${order.items.length - 1} more`}
           </div>
+          {first?.color && <div className="text-[11px] text-gold mt-0.5">Color: {first.color}</div>}
           <div className="text-[11px] text-muted-foreground/80 mt-0.5">
             {order.order_number} · <span className="text-gold font-medium">{formatAED(order.total)}</span>
           </div>

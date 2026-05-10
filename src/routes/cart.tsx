@@ -19,7 +19,10 @@ function CartPage() {
           <ShoppingBag className="w-16 h-16 mx-auto text-gold/40 mb-6" strokeWidth={1.2} />
           <h1 className="font-display text-3xl mb-3">{t("cart.empty")}</h1>
           <p className="text-muted-foreground mb-8">{t("cart.emptyDesc")}</p>
-          <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-105 transition-transform">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-105 transition-transform"
+          >
             {t("common.continueShopping")} <ArrowRight className="w-4 h-4 rtl-flip" />
           </Link>
         </div>
@@ -35,27 +38,50 @@ function CartPage() {
         <div className="grid lg:grid-cols-[1fr_360px] gap-8">
           <div className="space-y-3">
             {items.map((item) => (
-              <div key={item.id} className="glass rounded-2xl p-4 flex gap-4 items-center animate-fade-in-up">
+              <div
+                key={item.id}
+                className="glass rounded-2xl p-4 flex gap-4 items-center animate-fade-in-up"
+              >
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-secondary shrink-0">
-                  {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover" />}
+                  {item.image && (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <Link to="/product/$slug" params={{ slug: item.slug }} className="font-medium hover:text-gold line-clamp-2">
+                  <Link
+                    to="/product/$slug"
+                    params={{ slug: item.slug }}
+                    className="font-medium hover:text-gold line-clamp-2"
+                  >
                     {item.name}
                   </Link>
-                  <div className="text-gold font-display font-bold mt-1">{formatAED(item.price)}</div>
+                  {item.color && <div className="text-xs text-gold mt-1">Color: {item.color}</div>}
+                  <div className="text-gold font-display font-bold mt-1">
+                    {formatAED(item.price)}
+                  </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center glass rounded-full border border-gold/20 text-sm">
-                    <button onClick={() => setQty(item.id, item.qty - 1)} className="p-2 hover:text-gold" aria-label="-">
+                    <button
+                      onClick={() => setQty(item.id, item.qty - 1)}
+                      className="p-2 hover:text-gold"
+                      aria-label="-"
+                    >
                       <Minus className="w-3 h-3" />
                     </button>
                     <span className="w-8 text-center">{item.qty}</span>
-                    <button onClick={() => setQty(item.id, item.qty + 1)} className="p-2 hover:text-gold" aria-label="+">
+                    <button
+                      onClick={() => setQty(item.id, item.qty + 1)}
+                      className="p-2 hover:text-gold"
+                      aria-label="+"
+                    >
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
-                  <button onClick={() => remove(item.id)} className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1">
+                  <button
+                    onClick={() => remove(item.id)}
+                    className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"
+                  >
                     <Trash2 className="w-3 h-3" /> {t("common.remove")}
                   </button>
                 </div>
@@ -75,7 +101,9 @@ function CartPage() {
             </div>
             <div className="border-t border-gold/15 pt-3 flex justify-between font-bold text-lg">
               <span>{t("common.total")}</span>
-              <span className="text-gold font-display">{formatAED(subtotal + (subtotal >= 200 ? 0 : 20))}</span>
+              <span className="text-gold font-display">
+                {formatAED(subtotal + (subtotal >= 200 ? 0 : 20))}
+              </span>
             </div>
             <Link
               to="/checkout"
