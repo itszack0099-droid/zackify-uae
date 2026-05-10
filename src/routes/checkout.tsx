@@ -24,11 +24,22 @@ export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
 });
 
-const EMIRATES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"];
+const EMIRATES = [
+  "Abu Dhabi",
+  "Dubai",
+  "Sharjah",
+  "Ajman",
+  "Umm Al Quwain",
+  "Ras Al Khaimah",
+  "Fujairah",
+];
 
 const Schema = z.object({
   customer_name: z.string().trim().min(2, "Name is too short").max(100),
-  phone: z.string().trim().regex(/^(\+?971|0)?5\d{8}$/, "Enter a valid UAE mobile number"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^(\+?971|0)?5\d{8}$/, "Enter a valid UAE mobile number"),
   address: z.string().trim().min(5).max(300),
   city: z.string().trim().min(2).max(80),
   emirate: z.string().min(1, "Select your emirate"),
@@ -84,7 +95,15 @@ function CheckoutPage() {
   const applySaved = (id: string) => {
     setSelectedSaved(id);
     if (id === "new") {
-      setForm({ ...form, customer_name: "", phone: "", address: "", city: "", emirate: "", postal_code: "" });
+      setForm({
+        ...form,
+        customer_name: "",
+        phone: "",
+        address: "",
+        city: "",
+        emirate: "",
+        postal_code: "",
+      });
       return;
     }
     const a = saved.find((x) => x.id === id);
@@ -108,7 +127,9 @@ function CheckoutPage() {
       <Layout>
         <div className="max-w-xl mx-auto px-6 py-24 text-center">
           <h1 className="font-display text-2xl mb-4">{t("cart.empty")}</h1>
-          <Link to="/" className="text-gold hover:underline">← {t("common.continueShopping")}</Link>
+          <Link to="/" className="text-gold hover:underline">
+            ← {t("common.continueShopping")}
+          </Link>
         </div>
       </Layout>
     );
@@ -190,35 +211,79 @@ function CheckoutPage() {
                   </div>
                 )}
                 {user && saved.length === 0 && (
-                  <Link to="/account/addresses" search={{ redirect: undefined }} className="text-xs text-gold hover:underline">
+                  <Link
+                    to="/account/addresses"
+                    search={{ redirect: undefined }}
+                    className="text-xs text-gold hover:underline"
+                  >
                     + Save addresses for next time
                   </Link>
                 )}
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <Field label={`${t("checkout.fullName")} *`}>
-                  <input required value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} className={inputCls} />
+                  <input
+                    required
+                    value={form.customer_name}
+                    onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label={`${t("checkout.phone")} *`}>
-                  <input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="05X XXX XXXX" className={inputCls} />
+                  <input
+                    required
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="05X XXX XXXX"
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label={`${t("checkout.address")} *`} full>
-                  <input required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder={t("checkout.addressPh")} className={inputCls} />
+                  <input
+                    required
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    placeholder={t("checkout.addressPh")}
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label={`${t("checkout.city")} *`}>
-                  <input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className={inputCls} />
+                  <input
+                    required
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label={`${t("checkout.emirate")} *`}>
-                  <select required value={form.emirate} onChange={(e) => setForm({ ...form, emirate: e.target.value })} className={inputCls}>
+                  <select
+                    required
+                    value={form.emirate}
+                    onChange={(e) => setForm({ ...form, emirate: e.target.value })}
+                    className={inputCls}
+                  >
                     <option value="">{t("checkout.selectEmirate")}</option>
-                    {EMIRATES.map((e) => <option key={e} value={e}>{e}</option>)}
+                    {EMIRATES.map((e) => (
+                      <option key={e} value={e}>
+                        {e}
+                      </option>
+                    ))}
                   </select>
                 </Field>
                 <Field label={t("checkout.postal")}>
-                  <input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} className={inputCls} />
+                  <input
+                    value={form.postal_code}
+                    onChange={(e) => setForm({ ...form, postal_code: e.target.value })}
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label={t("checkout.notes")} full>
-                  <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={inputCls} />
+                  <textarea
+                    rows={2}
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    className={inputCls}
+                  />
                 </Field>
               </div>
             </section>
@@ -249,26 +314,44 @@ function CheckoutPage() {
                   <div className="flex-1 min-w-0">
                     <div className="line-clamp-1">{i.name}</div>
                     {i.color && <div className="text-[11px] text-gold">Color: {i.color}</div>}
-                    <div className="text-xs text-muted-foreground">{t("checkout.qty")} {i.qty}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t("checkout.qty")} {i.qty}
+                    </div>
                   </div>
-                  <div className="text-gold font-medium whitespace-nowrap">{formatAED(i.price * i.qty)}</div>
+                  <div className="text-gold font-medium whitespace-nowrap">
+                    {formatAED(i.price * i.qty)}
+                  </div>
                 </div>
               ))}
             </div>
             <div className="border-t border-gold/15 pt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">{t("common.subtotal")}</span><span>{formatAED(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">{t("common.shipping")}</span><span className="text-gold">{shipping === 0 ? t("common.free") : formatAED(shipping)}</span></div>
-              <div className="flex justify-between font-bold text-lg pt-1"><span>{t("common.total")}</span><span className="text-gold font-display">{formatAED(total)}</span></div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("common.subtotal")}</span>
+                <span>{formatAED(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("common.shipping")}</span>
+                <span className="text-gold">
+                  {shipping === 0 ? t("common.free") : formatAED(shipping)}
+                </span>
+              </div>
+              <div className="flex justify-between font-bold text-lg pt-1">
+                <span>{t("common.total")}</span>
+                <span className="text-gold font-display">{formatAED(total)}</span>
+              </div>
             </div>
             <button
               type="submit"
               disabled={submitting}
               className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold hover:scale-[1.02] transition-transform disabled:opacity-60"
             >
-              <Lock className="w-4 h-4" /> {submitting ? t("checkout.placing") : t("checkout.placeOrder")}
+              <Lock className="w-4 h-4" />{" "}
+              {submitting ? t("checkout.placing") : t("checkout.placeOrder")}
             </button>
             <p className="text-xs text-center text-muted-foreground">{t("common.deliveredIn")}</p>
-            <p className="text-[11px] text-center text-muted-foreground">{t("checkout.returnNote")}</p>
+            <p className="text-[11px] text-center text-muted-foreground">
+              {t("checkout.returnNote")}
+            </p>
           </aside>
         </form>
       </div>
@@ -276,9 +359,18 @@ function CheckoutPage() {
   );
 }
 
-const inputCls = "w-full bg-card border border-gold/20 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition";
+const inputCls =
+  "w-full bg-card border border-gold/20 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition";
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
+function Field({
+  label,
+  children,
+  full,
+}: {
+  label: string;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
   return (
     <label className={`block ${full ? "sm:col-span-2" : ""}`}>
       <span className="block text-xs text-muted-foreground mb-1.5">{label}</span>

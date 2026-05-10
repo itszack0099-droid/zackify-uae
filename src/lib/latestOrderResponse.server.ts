@@ -13,7 +13,9 @@ export async function latestOrderResponse() {
   try {
     const { data, error } = await supabaseAdmin
       .from("orders")
-      .select("id, order_number, customer_name, phone, total, status, created_at, address, city, emirate, items")
+      .select(
+        "id, order_number, customer_name, phone, total, status, created_at, address, city, emirate, items",
+      )
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

@@ -51,13 +51,18 @@ function ProductPage() {
 
   useEffect(() => {
     setLoading(true);
-    supabase.from("products").select("*").eq("slug", slug).maybeSingle().then(({ data }) => {
-      const p = data as Product | null;
-      setProduct(p);
-      setLoading(false);
-      setQty(1);
-      setSelectedColor(p?.colors?.[0] ?? "");
-    });
+    supabase
+      .from("products")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle()
+      .then(({ data }) => {
+        const p = data as Product | null;
+        setProduct(p);
+        setLoading(false);
+        setQty(1);
+        setSelectedColor(p?.colors?.[0] ?? "");
+      });
   }, [slug]);
 
   if (loading) {
@@ -80,13 +85,17 @@ function ProductPage() {
       <Layout>
         <div className="max-w-2xl mx-auto px-6 py-24 text-center">
           <h1 className="font-display text-3xl mb-4">Product not found</h1>
-          <Link to="/" className="text-gold hover:underline">← Back to home</Link>
+          <Link to="/" className="text-gold hover:underline">
+            ← Back to home
+          </Link>
         </div>
       </Layout>
     );
   }
 
-  const images = (product.images?.length ? product.images : [product.image_url]).filter(Boolean) as string[];
+  const images = (product.images?.length ? product.images : [product.image_url]).filter(
+    Boolean,
+  ) as string[];
   const final = product.discount_price ?? product.price;
   const hasDiscount = product.discount_price && product.discount_price < product.price;
   const hasColors = (product.colors?.length ?? 0) > 0;
@@ -134,9 +143,15 @@ function ProductPage() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8 pb-32 lg:pb-10">
         {/* Breadcrumb (desktop only) */}
         <div className="hidden md:flex text-xs text-muted-foreground mb-5 gap-1.5">
-          <Link to="/" className="hover:text-gold">Home</Link>
+          <Link to="/" className="hover:text-gold">
+            Home
+          </Link>
           <span>/</span>
-          <Link to="/category/$slug" params={{ slug: product.category_slug }} className="hover:text-gold capitalize">
+          <Link
+            to="/category/$slug"
+            params={{ slug: product.category_slug }}
+            className="hover:text-gold capitalize"
+          >
             {product.category_slug.replace("-", " ")}
           </Link>
           <span>/</span>
@@ -158,10 +173,16 @@ function ProductPage() {
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-0.5 text-gold">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`w-3.5 h-3.5 ${i < Math.round(product.rating ?? 5) ? "fill-gold" : "fill-none opacity-30"}`} strokeWidth={1.5} />
+                  <Star
+                    key={i}
+                    className={`w-3.5 h-3.5 ${i < Math.round(product.rating ?? 5) ? "fill-gold" : "fill-none opacity-30"}`}
+                    strokeWidth={1.5}
+                  />
                 ))}
               </div>
-              <span className="text-xs text-muted-foreground">({product.rating ?? 5}) · 248 reviews</span>
+              <span className="text-xs text-muted-foreground">
+                ({product.rating ?? 5}) · 248 reviews
+              </span>
             </div>
 
             {/* Price */}
@@ -169,9 +190,12 @@ function ProductPage() {
               <span className="font-display font-bold text-3xl text-gold">{formatAED(final)}</span>
               {hasDiscount && (
                 <>
-                  <span className="text-base text-muted-foreground line-through">{formatAED(product.price)}</span>
+                  <span className="text-base text-muted-foreground line-through">
+                    {formatAED(product.price)}
+                  </span>
                   <span className="text-[11px] bg-gradient-gold text-deep-green font-bold px-2 py-0.5 rounded-full">
-                    −{Math.round(((product.price - product.discount_price!) / product.price) * 100)}%
+                    −{Math.round(((product.price - product.discount_price!) / product.price) * 100)}
+                    %
                   </span>
                 </>
               )}
@@ -180,7 +204,10 @@ function ProductPage() {
             {/* Quantity + Buy now / Add to cart — directly below the title */}
             <div className="flex items-center gap-3">
               <div className="flex items-center glass rounded-full border border-gold/30">
-                <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="p-2.5 hover:text-gold">
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="p-2.5 hover:text-gold"
+                >
                   <Minus className="w-4 h-4" />
                 </button>
                 <span className="w-9 text-center font-semibold text-sm">{qty}</span>
@@ -245,7 +272,9 @@ function ProductPage() {
 
             {/* Description */}
             {product.description && (
-              <p className="text-sm text-foreground/75 leading-relaxed pt-2">{product.description}</p>
+              <p className="text-sm text-foreground/75 leading-relaxed pt-2">
+                {product.description}
+              </p>
             )}
 
             {/* Features — collapsible button */}
@@ -281,7 +310,8 @@ function ProductPage() {
               <div className="text-sm">
                 <div className="font-semibold">3 Days Return Policy</div>
                 <div className="text-xs text-muted-foreground">
-                  Returns are accepted within 3 days of delivery. The product must be unused, in original condition, and in its original packaging.
+                  Returns are accepted within 3 days of delivery. The product must be unused, in
+                  original condition, and in its original packaging.
                 </div>
               </div>
             </div>
@@ -295,14 +325,30 @@ function ProductPage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-3">
             {[
-              { name: "Ahmed M.", rating: 5, text: "Premium quality, exactly as shown. Fast delivery to Dubai." },
-              { name: "Khalid R.", rating: 5, text: "Worth every dirham. The packaging was luxurious." },
-              { name: "Yousef A.", rating: 4, text: "Great product, will order again. COD made it easy." },
+              {
+                name: "Ahmed M.",
+                rating: 5,
+                text: "Premium quality, exactly as shown. Fast delivery to Dubai.",
+              },
+              {
+                name: "Khalid R.",
+                rating: 5,
+                text: "Worth every dirham. The packaging was luxurious.",
+              },
+              {
+                name: "Yousef A.",
+                rating: 4,
+                text: "Great product, will order again. COD made it easy.",
+              },
             ].map((r) => (
               <div key={r.name} className="glass rounded-2xl p-4">
                 <div className="flex items-center gap-1 text-gold mb-2">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? "fill-gold" : "fill-none opacity-30"}`} strokeWidth={1.5} />
+                    <Star
+                      key={i}
+                      className={`w-3.5 h-3.5 ${i < r.rating ? "fill-gold" : "fill-none opacity-30"}`}
+                      strokeWidth={1.5}
+                    />
                   ))}
                 </div>
                 <p className="text-sm text-foreground/80 mb-2">"{r.text}"</p>

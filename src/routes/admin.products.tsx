@@ -1,7 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2, Search, Film, Palette } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+  Upload,
+  ImageIcon,
+  Loader2,
+  Search,
+  Film,
+  Palette,
+} from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 import { squareCompress } from "@/lib/imageCompress";
@@ -32,7 +43,12 @@ type Product = {
 
 type Category = { slug: string; name: string };
 
-const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 const COLOR_BUCKET = [
   { name: "Black", swatchClass: "swatch-black" },
   { name: "White", swatchClass: "swatch-white" },
@@ -45,8 +61,20 @@ const COLOR_BUCKET = [
 ] as const;
 
 const empty: Partial<Product> = {
-  name: "", slug: "", sku: "", description: "", price: 0, discount_price: null, image_url: "",
-  images: [], category_slug: "", stock: 0, featured: false, hot_deal: false, features: [], colors: [],
+  name: "",
+  slug: "",
+  sku: "",
+  description: "",
+  price: 0,
+  discount_price: null,
+  image_url: "",
+  images: [],
+  category_slug: "",
+  stock: 0,
+  featured: false,
+  hot_deal: false,
+  features: [],
+  colors: [],
 };
 
 function AdminProducts() {
@@ -69,18 +97,27 @@ function AdminProducts() {
     setCats((c.data ?? []) as Category[]);
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  const startNew = () => { setEditing(empty); setFeaturesStr(""); setColorsStr(""); };
+  const startNew = () => {
+    setEditing(empty);
+    setFeaturesStr("");
+    setColorsStr("");
+  };
   const startEdit = (p: Product) => {
     // Backfill images from legacy image_url so the gallery UI works for old products
-    const images = (p.images && p.images.length > 0) ? p.images : (p.image_url ? [p.image_url] : []);
+    const images = p.images && p.images.length > 0 ? p.images : p.image_url ? [p.image_url] : [];
     setEditing({ ...p, images });
     setFeaturesStr((p.features ?? []).join("\n"));
     setColorsStr((p.colors ?? []).join(", "));
   };
 
-  const selectedColors = colorsStr.split(",").map((s) => s.trim()).filter(Boolean);
+  const selectedColors = colorsStr
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const addColor = (name: string) => {
     const exists = selectedColors.some((c) => c.toLowerCase() === name.toLowerCase());
     if (!exists) setColorsStr([...selectedColors, name].join(", "));
@@ -117,18 +154,26 @@ function AdminProducts() {
         if (isImage) {
           let processed: File;
           try {
-            processed = await squareCompress(raw, { maxBytes: 300 * 1024, size: 1200, mime: "image/jpeg" });
-            console.log(`[upload] ${raw.name}: ${(raw.size / 1024).toFixed(0)}KB → ${(processed.size / 1024).toFixed(0)}KB`);
+            processed = await squareCompress(raw, {
+              maxBytes: 300 * 1024,
+              size: 1200,
+              mime: "image/jpeg",
+            });
+            console.log(
+              `[upload] ${raw.name}: ${(raw.size / 1024).toFixed(0)}KB → ${(processed.size / 1024).toFixed(0)}KB`,
+            );
           } catch (err) {
             console.error("Image compression failed, uploading original:", err);
             processed = raw;
           }
           const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
-          const { error: upErr } = await supabase.storage.from("product-images").upload(fileName, processed, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: processed.type,
-          });
+          const { error: upErr } = await supabase.storage
+            .from("product-images")
+            .upload(fileName, processed, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: processed.type,
+            });
           if (upErr) {
             toast.error(upErr.message);
             continue;
@@ -139,11 +184,13 @@ function AdminProducts() {
           // Video or GIF → product-media bucket
           const ext = raw.name.split(".").pop()?.toLowerCase() || (isGif ? "gif" : "mp4");
           const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-          const { error: upErr } = await supabase.storage.from("product-media").upload(fileName, raw, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: raw.type,
-          });
+          const { error: upErr } = await supabase.storage
+            .from("product-media")
+            .upload(fileName, raw, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: raw.type,
+            });
           if (upErr) {
             console.error("media upload failed:", upErr);
             toast.error(upErr.message);
@@ -199,7 +246,10 @@ function AdminProducts() {
       slug: editing.slug || slugify(editing.name),
       sku: editing.sku?.trim() || "",
       description: editing.description || null,
-      features: featuresStr.split("\n").map((s) => s.trim()).filter(Boolean),
+      features: featuresStr
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean),
       price: Number(editing.price),
       discount_price: editing.discount_price ? Number(editing.discount_price) : null,
       image_url: editing.image_url || imgs[0] || null,
@@ -209,7 +259,10 @@ function AdminProducts() {
       featured: !!editing.featured,
       hot_deal: !!editing.hot_deal,
       deal_ends_at: editing.deal_ends_at || null,
-      colors: colorsStr.split(",").map((s) => s.trim()).filter(Boolean),
+      colors: colorsStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
     } as never;
     const query = editing.id
       ? supabase.from("products").update(payload).eq("id", editing.id).select()
@@ -223,7 +276,10 @@ function AdminProducts() {
       console.error("Product save returned 0 rows — likely blocked by permissions (RLS).");
       return toast.error("Save was blocked. Your account may not have admin permissions.");
     }
-    console.log(editing.id ? "Product updated in database:" : "Product saved to database:", data[0]);
+    console.log(
+      editing.id ? "Product updated in database:" : "Product saved to database:",
+      data[0],
+    );
     toast.success(editing.id ? "Product updated successfully" : "Product added successfully");
     setEditing(null);
     load();
@@ -275,7 +331,10 @@ function AdminProducts() {
             />
           </div>
           <CsvProductUpload onDone={load} />
-          <button onClick={startNew} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold">
+          <button
+            onClick={startNew}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold"
+          >
             <Plus className="w-4 h-4" /> New Product
           </button>
         </div>
@@ -298,55 +357,115 @@ function AdminProducts() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}><td colSpan={7} className="p-2"><div className="h-12 rounded-lg animate-shimmer-bg" /></td></tr>
+                  <tr key={i}>
+                    <td colSpan={7} className="p-2">
+                      <div className="h-12 rounded-lg animate-shimmer-bg" />
+                    </td>
+                  </tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No products match.</td></tr>
-              ) : filtered.map((p) => (
-                <tr key={p.id} className="border-b border-gold/10 hover:bg-gold/5">
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-secondary shrink-0">
-                        {p.image_url && <img src={p.image_url} alt="" className="w-full h-full object-cover" />}
-                      </div>
-                      <span className="font-medium">{p.name}</span>
-                    </div>
-                  </td>
-                  <td className="text-xs font-mono text-muted-foreground">{p.sku ?? "—"}</td>
-                  <td className="text-xs text-muted-foreground">{p.category_slug}</td>
-                  <td>
-                    <div className="text-gold font-medium">{formatAED(Number(p.discount_price ?? p.price))}</div>
-                    {p.discount_price && <div className="text-xs text-muted-foreground line-through">{formatAED(Number(p.price))}</div>}
-                  </td>
-                  <td>{p.stock}</td>
-                  <td className="space-x-1">
-                    {p.featured && <span className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-full">Featured</span>}
-                    {p.hot_deal && <span className="text-[10px] bg-destructive/20 text-destructive px-2 py-0.5 rounded-full">Hot</span>}
-                  </td>
-                  <td className="pr-4 text-right">
-                    <button onClick={() => startEdit(p)} className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold"><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => remove(p.id)} className="p-2 rounded-lg hover:bg-destructive/10 hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                    No products match.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map((p) => (
+                  <tr key={p.id} className="border-b border-gold/10 hover:bg-gold/5">
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-secondary shrink-0">
+                          {p.image_url && (
+                            <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <span className="font-medium">{p.name}</span>
+                      </div>
+                    </td>
+                    <td className="text-xs font-mono text-muted-foreground">{p.sku ?? "—"}</td>
+                    <td className="text-xs text-muted-foreground">{p.category_slug}</td>
+                    <td>
+                      <div className="text-gold font-medium">
+                        {formatAED(Number(p.discount_price ?? p.price))}
+                      </div>
+                      {p.discount_price && (
+                        <div className="text-xs text-muted-foreground line-through">
+                          {formatAED(Number(p.price))}
+                        </div>
+                      )}
+                    </td>
+                    <td>{p.stock}</td>
+                    <td className="space-x-1">
+                      {p.featured && (
+                        <span className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-full">
+                          Featured
+                        </span>
+                      )}
+                      {p.hot_deal && (
+                        <span className="text-[10px] bg-destructive/20 text-destructive px-2 py-0.5 rounded-full">
+                          Hot
+                        </span>
+                      )}
+                    </td>
+                    <td className="pr-4 text-right">
+                      <button
+                        onClick={() => startEdit(p)}
+                        className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => remove(p.id)}
+                        className="p-2 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm p-2 md:p-6 animate-fade-in" onClick={() => setEditing(null)}>
-          <div className="bg-card rounded-2xl border border-gold/30 max-w-2xl w-full max-h-[90vh] overflow-auto animate-scale-in" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm p-2 md:p-6 animate-fade-in"
+          onClick={() => setEditing(null)}
+        >
+          <div
+            className="bg-card rounded-2xl border border-gold/30 max-w-2xl w-full max-h-[90vh] overflow-auto animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-gold/15 flex justify-between items-center sticky top-0 bg-card z-10">
-              <h2 className="font-display text-xl">{editing.id ? "Edit Product" : "New Product"}</h2>
-              <button onClick={() => setEditing(null)} className="p-2 hover:text-gold"><X className="w-5 h-5" /></button>
+              <h2 className="font-display text-xl">
+                {editing.id ? "Edit Product" : "New Product"}
+              </h2>
+              <button onClick={() => setEditing(null)} className="p-2 hover:text-gold">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <div className="p-6 space-y-4">
               <Field label="Name *">
-                <input value={editing.name ?? ""} onChange={(e) => setEditing({ ...editing, name: e.target.value, slug: editing.slug || slugify(e.target.value) })} className={inp} />
+                <input
+                  value={editing.name ?? ""}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      name: e.target.value,
+                      slug: editing.slug || slugify(e.target.value),
+                    })
+                  }
+                  className={inp}
+                />
               </Field>
               <Field label="Slug">
-                <input value={editing.slug ?? ""} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inp} />
+                <input
+                  value={editing.slug ?? ""}
+                  onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })}
+                  className={inp}
+                />
               </Field>
               <Field label="SKU (leave blank to auto-generate)">
                 <input
@@ -363,10 +482,19 @@ function AdminProducts() {
                       {(editing.images ?? []).map((url, idx) => {
                         const isVid = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
                         return (
-                          <div key={`${url}-${idx}`} className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square">
+                          <div
+                            key={`${url}-${idx}`}
+                            className="relative group rounded-xl overflow-hidden border border-gold/20 bg-secondary aspect-square"
+                          >
                             {isVid ? (
                               <>
-                                <video src={url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+                                <video
+                                  src={url}
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                  className="w-full h-full object-cover"
+                                />
                                 <div className="absolute top-1 right-1 text-[9px] uppercase bg-black/60 text-white px-1.5 py-0.5 rounded flex items-center gap-1">
                                   <Film className="w-2.5 h-2.5" /> MP4
                                 </div>
@@ -375,14 +503,34 @@ function AdminProducts() {
                               <img src={url} alt="" className="w-full h-full object-cover" />
                             )}
                             {idx === 0 && (
-                              <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">Cover</span>
+                              <span className="absolute top-1 left-1 text-[9px] uppercase tracking-wide bg-gradient-gold text-deep-green font-bold px-1.5 py-0.5 rounded">
+                                Cover
+                              </span>
                             )}
                             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-black/60 opacity-0 group-hover:opacity-100 transition">
                               <div className="flex gap-1">
-                                <button type="button" onClick={() => moveImage(idx, -1)} disabled={idx === 0} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">←</button>
-                                <button type="button" onClick={() => moveImage(idx, 1)} disabled={idx === (editing.images?.length ?? 0) - 1} className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30">→</button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveImage(idx, -1)}
+                                  disabled={idx === 0}
+                                  className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30"
+                                >
+                                  ←
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveImage(idx, 1)}
+                                  disabled={idx === (editing.images?.length ?? 0) - 1}
+                                  className="text-[10px] px-1.5 py-0.5 rounded bg-white/15 hover:bg-gold hover:text-deep-green disabled:opacity-30"
+                                >
+                                  →
+                                </button>
                               </div>
-                              <button type="button" onClick={() => removeImageAt(idx)} className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground">
+                              <button
+                                type="button"
+                                onClick={() => removeImageAt(idx)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/80 hover:bg-destructive text-destructive-foreground"
+                              >
                                 <Trash2 className="w-3 h-3" />
                               </button>
                             </div>
@@ -410,7 +558,11 @@ function AdminProducts() {
                       disabled={uploading}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold disabled:opacity-60"
                     >
-                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4" />
+                      )}
                       {uploading ? "Uploading..." : "Upload media (Image · MP4 · GIF)"}
                     </button>
                     {(editing.images?.length ?? 0) === 0 && (
@@ -420,28 +572,45 @@ function AdminProducts() {
                       </>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Photos auto-crop to square &amp; compress under 300 KB (max 20 MB). MP4 / GIF (max 50 MB) — videos autoplay muted, GIFs loop in the gallery.</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Photos auto-crop to square &amp; compress under 300 KB (max 20 MB). MP4 / GIF
+                    (max 50 MB) — videos autoplay muted, GIFs loop in the gallery.
+                  </p>
                 </div>
               </Field>
               <Field label="Description">
-                <textarea rows={3} value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className={inp} />
+                <textarea
+                  rows={3}
+                  value={editing.description ?? ""}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
+                  className={inp}
+                />
               </Field>
               <Field label="Features (one per line)">
-                <textarea rows={3} value={featuresStr} onChange={(e) => setFeaturesStr(e.target.value)} className={inp} />
+                <textarea
+                  rows={3}
+                  value={featuresStr}
+                  onChange={(e) => setFeaturesStr(e.target.value)}
+                  className={inp}
+                />
               </Field>
               <Field label="Product colours">
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
                     {COLOR_BUCKET.map((color) => {
-                      const active = selectedColors.some((c) => c.toLowerCase() === color.name.toLowerCase());
+                      const active = selectedColors.some(
+                        (c) => c.toLowerCase() === color.name.toLowerCase(),
+                      );
                       return (
                         <button
                           key={color.name}
                           type="button"
-                          onClick={() => active ? removeColor(color.name) : addColor(color.name)}
+                          onClick={() => (active ? removeColor(color.name) : addColor(color.name))}
                           className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-xs font-medium transition ${active ? "bg-gradient-gold text-deep-green border-gold shadow-gold" : "glass border-gold/20 hover:border-gold"}`}
                         >
-                          <span className={`w-4 h-4 rounded-full border border-gold/30 ${color.swatchClass}`} />
+                          <span
+                            className={`w-4 h-4 rounded-full border border-gold/30 ${color.swatchClass}`}
+                          />
                           {color.name}
                         </button>
                       );
@@ -449,14 +618,29 @@ function AdminProducts() {
                   </div>
                   <div className="flex items-center gap-2 rounded-xl border border-gold/20 bg-background px-3 py-2">
                     <Palette className="w-4 h-4 text-gold" />
-                    <input value={colorsStr} onChange={(e) => setColorsStr(e.target.value)} placeholder="Black, Silver, White" className="flex-1 bg-transparent text-sm focus:outline-none" />
+                    <input
+                      value={colorsStr}
+                      onChange={(e) => setColorsStr(e.target.value)}
+                      placeholder="Black, Silver, White"
+                      className="flex-1 bg-transparent text-sm focus:outline-none"
+                    />
                   </div>
                   {selectedColors.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {selectedColors.map((c) => (
-                        <span key={c} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gold/10 text-gold text-[11px]">
+                        <span
+                          key={c}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gold/10 text-gold text-[11px]"
+                        >
                           {c}
-                          <button type="button" onClick={() => removeColor(c)} aria-label={`Remove ${c}`} className="hover:text-foreground">×</button>
+                          <button
+                            type="button"
+                            onClick={() => removeColor(c)}
+                            aria-label={`Remove ${c}`}
+                            className="hover:text-foreground"
+                          >
+                            ×
+                          </button>
                         </span>
                       ))}
                     </div>
@@ -465,40 +649,109 @@ function AdminProducts() {
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Category *">
-                  <select value={editing.category_slug ?? ""} onChange={(e) => setEditing({ ...editing, category_slug: e.target.value })} className={inp}>
+                  <select
+                    value={editing.category_slug ?? ""}
+                    onChange={(e) => setEditing({ ...editing, category_slug: e.target.value })}
+                    className={inp}
+                  >
                     <option value="">Select…</option>
-                    {cats.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+                    {cats.map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </Field>
                 <Field label="Stock">
-                  <input type="number" min={0} value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })} className={inp} />
+                  <input
+                    type="number"
+                    min={0}
+                    value={editing.stock ?? 0}
+                    onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })}
+                    className={inp}
+                  />
                 </Field>
                 <Field label="Price (AED) *">
-                  <input type="number" min={0} step="0.01" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} className={inp} />
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={editing.price ?? 0}
+                    onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })}
+                    className={inp}
+                  />
                 </Field>
                 <Field label="Discount Price">
-                  <input type="number" min={0} step="0.01" value={editing.discount_price ?? ""} onChange={(e) => setEditing({ ...editing, discount_price: e.target.value ? Number(e.target.value) : null })} className={inp} />
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={editing.discount_price ?? ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        discount_price: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                    className={inp}
+                  />
                 </Field>
               </div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={!!editing.featured} onChange={(e) => setEditing({ ...editing, featured: e.target.checked })} className="accent-[var(--gold)]" />
+                  <input
+                    type="checkbox"
+                    checked={!!editing.featured}
+                    onChange={(e) => setEditing({ ...editing, featured: e.target.checked })}
+                    className="accent-[var(--gold)]"
+                  />
                   Featured
                 </label>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={!!editing.hot_deal} onChange={(e) => setEditing({ ...editing, hot_deal: e.target.checked })} className="accent-[var(--gold)]" />
+                  <input
+                    type="checkbox"
+                    checked={!!editing.hot_deal}
+                    onChange={(e) => setEditing({ ...editing, hot_deal: e.target.checked })}
+                    className="accent-[var(--gold)]"
+                  />
                   Hot Deal
                 </label>
               </div>
               {editing.hot_deal && (
                 <Field label="Deal ends at">
-                  <input type="datetime-local" value={editing.deal_ends_at ? new Date(editing.deal_ends_at).toISOString().slice(0, 16) : ""} onChange={(e) => setEditing({ ...editing, deal_ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })} className={inp} />
+                  <input
+                    type="datetime-local"
+                    value={
+                      editing.deal_ends_at
+                        ? new Date(editing.deal_ends_at).toISOString().slice(0, 16)
+                        : ""
+                    }
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        deal_ends_at: e.target.value
+                          ? new Date(e.target.value).toISOString()
+                          : null,
+                      })
+                    }
+                    className={inp}
+                  />
                 </Field>
               )}
             </div>
             <div className="p-6 border-t border-gold/15 flex justify-end gap-2 sticky bottom-0 bg-card">
-              <button onClick={() => setEditing(null)} className="px-5 py-2 rounded-full glass border border-gold/20 hover:border-gold">Cancel</button>
-              <button onClick={save} className="px-5 py-2 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold">Save</button>
+              <button
+                onClick={() => setEditing(null)}
+                className="px-5 py-2 rounded-full glass border border-gold/20 hover:border-gold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={save}
+                className="px-5 py-2 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -507,7 +760,13 @@ function AdminProducts() {
   );
 }
 
-const inp = "w-full bg-background border border-gold/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20";
+const inp =
+  "w-full bg-background border border-gold/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20";
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><span className="text-xs text-muted-foreground mb-1 block">{label}</span>{children}</label>;
+  return (
+    <label className="block">
+      <span className="text-xs text-muted-foreground mb-1 block">{label}</span>
+      {children}
+    </label>
+  );
 }

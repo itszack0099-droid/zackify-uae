@@ -4,8 +4,7 @@ import { latestOrderResponse, LATEST_ORDER_HEADERS } from "@/lib/latestOrderResp
 export const Route = createFileRoute("/api/public/latest-order")({
   server: {
     handlers: {
-      OPTIONS: async () =>
-        new Response(null, { status: 204, headers: LATEST_ORDER_HEADERS }),
+      OPTIONS: async () => new Response(null, { status: 204, headers: LATEST_ORDER_HEADERS }),
 
       GET: async () => latestOrderResponse(),
     },
