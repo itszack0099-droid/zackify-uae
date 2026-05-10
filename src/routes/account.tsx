@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
@@ -28,7 +28,8 @@ function AccountPage() {
   const { user, loading, signOut } = useAuth();
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
-  const hasChildRoute = window.location.pathname !== "/account";
+  const location = useLocation();
+  const hasChildRoute = location.pathname !== "/account";
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
