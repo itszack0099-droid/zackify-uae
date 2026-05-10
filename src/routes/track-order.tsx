@@ -275,13 +275,21 @@ function TrackPage() {
               </div>
             )}
 
+            <Detail icon={<MapPin className="w-4 h-4" />} label="Delivery address" value={`${order.address}, ${order.city}, ${order.emirate}`} />
+
             {/* Items */}
             <div className="border-t border-gold/15 pt-4 space-y-2">
               <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("track.items")}</div>
               {order.items?.map((it, i) => (
-                <div key={i} className="flex justify-between text-sm">
-                  <span className="text-foreground/80">{it.name} × {it.qty}</span>
-                  <span className="text-gold">{formatAED(it.price * it.qty)}</span>
+                <div key={i} className="flex items-center gap-3 rounded-2xl bg-card/40 border border-gold/10 p-3">
+                  <div className="w-12 h-12 rounded-xl bg-secondary overflow-hidden shrink-0">
+                    {it.image ? <img src={it.image} alt="" className="w-full h-full object-cover" /> : <Package className="w-5 h-5 text-muted-foreground m-3.5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-foreground/85 line-clamp-1">{it.name}</div>
+                    <div className="text-xs text-muted-foreground">Qty {it.qty}{it.color ? ` · Color: ${it.color}` : ""}</div>
+                  </div>
+                  <span className="text-gold text-sm font-medium whitespace-nowrap">{formatAED(it.price * it.qty)}</span>
                 </div>
               ))}
             </div>
