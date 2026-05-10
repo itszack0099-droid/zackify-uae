@@ -429,8 +429,39 @@ function AdminProducts() {
               <Field label="Features (one per line)">
                 <textarea rows={3} value={featuresStr} onChange={(e) => setFeaturesStr(e.target.value)} className={inp} />
               </Field>
-              <Field label="Colors (comma separated, e.g. Black, Silver, White)">
-                <input value={colorsStr} onChange={(e) => setColorsStr(e.target.value)} placeholder="Black, Silver, White" className={inp} />
+              <Field label="Product colours">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {COLOR_BUCKET.map((color) => {
+                      const active = selectedColors.some((c) => c.toLowerCase() === color.name.toLowerCase());
+                      return (
+                        <button
+                          key={color.name}
+                          type="button"
+                          onClick={() => active ? removeColor(color.name) : addColor(color.name)}
+                          className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-xs font-medium transition ${active ? "bg-gradient-gold text-deep-green border-gold shadow-gold" : "glass border-gold/20 hover:border-gold"}`}
+                        >
+                          <span className="w-4 h-4 rounded-full border border-gold/30" style={{ backgroundColor: color.swatch }} />
+                          {color.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2 rounded-xl border border-gold/20 bg-background px-3 py-2">
+                    <Palette className="w-4 h-4 text-gold" />
+                    <input value={colorsStr} onChange={(e) => setColorsStr(e.target.value)} placeholder="Black, Silver, White" className="flex-1 bg-transparent text-sm focus:outline-none" />
+                  </div>
+                  {selectedColors.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedColors.map((c) => (
+                        <span key={c} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gold/10 text-gold text-[11px]">
+                          {c}
+                          <button type="button" onClick={() => removeColor(c)} aria-label={`Remove ${c}`} className="hover:text-foreground">×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Category *">
