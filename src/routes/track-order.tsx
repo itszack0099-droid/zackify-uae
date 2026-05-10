@@ -3,8 +3,9 @@ import { z } from "zod";
 import { useEffect, useRef, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { useI18n, type StringKey } from "@/lib/i18n";
-import { Package, Search, CheckCircle2, Truck, Clock, X, Hash, Phone, Bike, CalendarClock, RefreshCcw } from "lucide-react";
+import { Package, Search, CheckCircle2, Truck, Clock, X, Hash, Phone, Bike, CalendarClock, RefreshCcw, ArrowLeft, MapPin } from "lucide-react";
 import { formatAED } from "@/lib/cart";
 
 export const Route = createFileRoute("/track-order")({
@@ -21,12 +22,15 @@ type Order = {
   total: number;
   created_at: string;
   updated_at: string;
-  items: Array<{ name: string; qty: number; price: number }>;
+  items: Array<{ name: string; qty: number; price: number; color?: string | null; image?: string }>;
   tracking_number: string | null;
   courier_name: string | null;
   estimated_delivery: string | null;
   delivery_date: string | null;
   return_deadline: string | null;
+  address: string;
+  city: string;
+  emirate: string;
 };
 
 const STEPS = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered"] as const;
