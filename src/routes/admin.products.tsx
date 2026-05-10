@@ -34,14 +34,14 @@ type Category = { slug: string; name: string };
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const COLOR_BUCKET = [
-  { name: "Black", swatch: "#111827" },
-  { name: "White", swatch: "#f8fafc" },
-  { name: "Silver", swatch: "#cbd5e1" },
-  { name: "Gold", swatch: "#d4af37" },
-  { name: "Blue", swatch: "#2563eb" },
-  { name: "Red", swatch: "#dc2626" },
-  { name: "Green", swatch: "#16a34a" },
-  { name: "Pink", swatch: "#ec4899" },
+  { name: "Black", swatchClass: "swatch-black" },
+  { name: "White", swatchClass: "swatch-white" },
+  { name: "Silver", swatchClass: "swatch-silver" },
+  { name: "Gold", swatchClass: "swatch-gold" },
+  { name: "Blue", swatchClass: "swatch-blue" },
+  { name: "Red", swatchClass: "swatch-red" },
+  { name: "Green", swatchClass: "swatch-green" },
+  { name: "Pink", swatchClass: "swatch-pink" },
 ] as const;
 
 const empty: Partial<Product> = {
@@ -441,7 +441,7 @@ function AdminProducts() {
                           onClick={() => active ? removeColor(color.name) : addColor(color.name)}
                           className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-xs font-medium transition ${active ? "bg-gradient-gold text-deep-green border-gold shadow-gold" : "glass border-gold/20 hover:border-gold"}`}
                         >
-                          <span className="w-4 h-4 rounded-full border border-gold/30" style={{ backgroundColor: color.swatch }} />
+                          <span className={`w-4 h-4 rounded-full border border-gold/30 ${color.swatchClass}`} />
                           {color.name}
                         </button>
                       );
