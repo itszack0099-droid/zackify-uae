@@ -131,11 +131,13 @@ function CheckoutPage() {
         customer_email: user?.email ?? null,
         items: items.map((i) => ({
           id: i.id,
+          product_id: i.productId ?? i.id.split("::")[0],
           name: i.name,
           slug: i.slug,
           price: i.price,
           qty: i.qty,
           image: i.image,
+          color: i.color ?? null,
         })),
         subtotal,
         total,
@@ -246,6 +248,7 @@ function CheckoutPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="line-clamp-1">{i.name}</div>
+                    {i.color && <div className="text-[11px] text-gold">Color: {i.color}</div>}
                     <div className="text-xs text-muted-foreground">{t("checkout.qty")} {i.qty}</div>
                   </div>
                   <div className="text-gold font-medium whitespace-nowrap">{formatAED(i.price * i.qty)}</div>
