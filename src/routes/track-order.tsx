@@ -40,6 +40,7 @@ const RETURN_ACTIVE: ReadonlyArray<string> = ["return_requested", "return_approv
 function TrackPage() {
   const search = Route.useSearch();
   const { t, lang } = useI18n();
+  const { user } = useAuth();
   const [num, setNum] = useState(search.num ?? "");
   const [phone, setPhone] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
@@ -71,17 +72,18 @@ function TrackPage() {
 
   const lookup = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!num.trim() || !phone.trim()) {
+    if (!num.trim() || (!user && !phone.trim())) {
       setError(t("track.bothRequired"));
       return;
     }
     setLoading(true);
     setError(null);
-    const { data } = await supabase
+    let query = supabase
       .from("orders")
-      .select("id,order_number,customer_name,phone,status,total,created_at,updated_at,items,tracking_number,courier_name,estimated_delivery,delivery_date,return_deadline")
-      .eq("order_number", num.trim().toUpperCase())
-      .maybeSingle();
+      .select("id,order_number,customer_name,phone,status,total,created_at,updated_at,items,tracking_number,courier_name,estimated_delivery,delivery_date,return_deadline,address,city,emirate")
+      .eq("order_number", num.trim().toUpperCase());
+    if (user) query = query.eq("user_id", user.id);
+    const { data } = await query.maybeSingle();
     setLoading(false);
     if (!data) {
       setOrder(null);
@@ -89,13 +91,17 @@ function TrackPage() {
       return;
     }
     const norm = (s: string) => s.replace(/\D/g, "").slice(-9);
-    if (norm(data.phone) !== norm(phone)) {
+    if (!user && norm(data.phone) !== norm(phone)) {
       setOrder(null);
       setError(t("track.phoneMismatch"));
       return;
     }
     setOrder(data as unknown as Order);
   };
+
+  useEffect(() => {
+    if (search.num && user && !order && !loading) lookup();
+  }, [search.num, user]);
 
   const currentStep = order ? STEPS.indexOf(order.status as typeof STEPS[number]) : -1;
   const cancelled = order?.status === "cancelled";
