@@ -115,14 +115,18 @@ function TrackPage() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-4 md:px-6 py-12">
-        <div className="text-center mb-8 animate-fade-in-up">
-          <Package className="w-12 h-12 text-gold mx-auto mb-3" strokeWidth={1.5} />
-          <h1 className="font-display text-4xl mb-2">{t("track.title")}</h1>
-          <p className="text-muted-foreground">{t("track.subtitle")}</p>
+      <div className="max-w-3xl mx-auto px-4 md:px-6 py-5 md:py-12">
+        <div className="flex items-center gap-3 mb-5 animate-fade-in-up">
+          <Link to={user ? "/account/orders" : "/"} className="p-2 -ml-2 rounded-full hover:bg-gold/10" aria-label="Back">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="font-display text-2xl md:text-4xl">{t("track.title")}</h1>
+            <p className="text-xs md:text-sm text-muted-foreground">{user ? "Your saved order opens instantly" : t("track.subtitle")}</p>
+          </div>
         </div>
 
-        <form onSubmit={lookup} className="glass rounded-2xl p-4 md:p-5 space-y-3 mb-6 animate-fade-in-up">
+        <form onSubmit={lookup} className="glass rounded-3xl p-4 md:p-5 space-y-3 mb-6 animate-fade-in-up gold-border">
           <div className="flex items-center gap-2 bg-card/50 border border-gold/20 rounded-xl px-3">
             <Hash className="w-4 h-4 text-muted-foreground" />
             <input
@@ -132,7 +136,7 @@ function TrackPage() {
               className="flex-1 bg-transparent py-3 focus:outline-none text-sm uppercase tracking-wider"
             />
           </div>
-          <div className="flex items-center gap-2 bg-card/50 border border-gold/20 rounded-xl px-3">
+          {!user && <div className="flex items-center gap-2 bg-card/50 border border-gold/20 rounded-xl px-3">
             <Phone className="w-4 h-4 text-muted-foreground" />
             <input
               value={phone}
@@ -141,7 +145,7 @@ function TrackPage() {
               className="flex-1 bg-transparent py-3 focus:outline-none text-sm"
               inputMode="tel"
             />
-          </div>
+          </div>}
           <button disabled={loading} className="w-full px-6 py-3.5 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold disabled:opacity-60 inline-flex items-center justify-center gap-2">
             <Search className="w-4 h-4" />
             {loading ? t("track.tracking") : t("track.button")}
@@ -156,7 +160,7 @@ function TrackPage() {
         )}
 
         {order && (
-          <div className={`glass rounded-2xl p-5 md:p-6 animate-fade-in-up space-y-6 transition-shadow ${livePulse ? "shadow-gold ring-2 ring-gold/40" : ""}`}>
+          <div className={`glass rounded-3xl p-4 md:p-6 animate-fade-in-up space-y-5 transition-shadow gold-border ${livePulse ? "shadow-gold ring-2 ring-gold/40" : ""}`}>
             <div className="flex flex-wrap justify-between items-start gap-4">
               <div>
                 <div className="text-xs text-muted-foreground uppercase tracking-wider">{t("success.orderNumber")}</div>
