@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2, Search, Film } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Upload, ImageIcon, Loader2, Search, Film, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 import { squareCompress } from "@/lib/imageCompress";
@@ -33,6 +33,16 @@ type Product = {
 type Category = { slug: string; name: string };
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const COLOR_BUCKET = [
+  { name: "Black", swatch: "#111827" },
+  { name: "White", swatch: "#f8fafc" },
+  { name: "Silver", swatch: "#cbd5e1" },
+  { name: "Gold", swatch: "#d4af37" },
+  { name: "Blue", swatch: "#2563eb" },
+  { name: "Red", swatch: "#dc2626" },
+  { name: "Green", swatch: "#16a34a" },
+  { name: "Pink", swatch: "#ec4899" },
+] as const;
 
 const empty: Partial<Product> = {
   name: "", slug: "", sku: "", description: "", price: 0, discount_price: null, image_url: "",
@@ -68,6 +78,15 @@ function AdminProducts() {
     setEditing({ ...p, images });
     setFeaturesStr((p.features ?? []).join("\n"));
     setColorsStr((p.colors ?? []).join(", "));
+  };
+
+  const selectedColors = colorsStr.split(",").map((s) => s.trim()).filter(Boolean);
+  const addColor = (name: string) => {
+    const exists = selectedColors.some((c) => c.toLowerCase() === name.toLowerCase());
+    if (!exists) setColorsStr([...selectedColors, name].join(", "));
+  };
+  const removeColor = (name: string) => {
+    setColorsStr(selectedColors.filter((c) => c.toLowerCase() !== name.toLowerCase()).join(", "));
   };
 
   // Single unified uploader: handles photos (auto-cropped), MP4/video, and GIFs.
