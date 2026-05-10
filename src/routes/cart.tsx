@@ -43,6 +43,7 @@ function CartPage() {
                   <Link to="/product/$slug" params={{ slug: item.slug }} className="font-medium hover:text-gold line-clamp-2">
                     {item.name}
                   </Link>
+                  {item.color && <div className="text-xs text-gold mt-1">Color: {item.color}</div>}
                   <div className="text-gold font-display font-bold mt-1">{formatAED(item.price)}</div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
