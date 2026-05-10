@@ -32,7 +32,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setItems(JSON.parse(raw));
-    } catch {}
+    } catch {
+      // Ignore invalid stored cart data and start fresh.
+    }
     setHydrated(true);
   }, []);
 
