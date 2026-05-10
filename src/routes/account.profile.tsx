@@ -57,13 +57,24 @@ function ProfilePage() {
     const parsed = Schema.safeParse(form);
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
     setBusy(true);
-    const { error } = await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("profiles")
       .update({
         display_name: parsed.data.display_name,
         phone: parsed.data.phone || null,
       })
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select("id");
+
+    const error = updateError || (!updated?.length
+      ? (await supabase.from("profiles").insert({
+          user_id: user.id,
+          email: user.email ?? null,
+          display_name: parsed.data.display_name,
+          phone: parsed.data.phone || null,
+        })).error
+      : null);
+
     if (!error) {
       await supabase.auth.updateUser({
         data: { display_name: parsed.data.display_name },
