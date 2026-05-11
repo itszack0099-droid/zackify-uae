@@ -275,6 +275,22 @@ function OrderModal({ order, onClose, onSaved }: { order: Order; onClose: () => 
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={async () => {
+                try {
+                  const csv = await ordersToCsv([order]);
+                  downloadCsv(`order-${order.order_number}.csv`, csv);
+                  toast.success("Order CSV downloaded");
+                } catch (e) {
+                  console.error(e);
+                  toast.error("Failed to export CSV");
+                }
+              }}
+              title="Download this order as CSV"
+              className="text-xs px-3 py-1.5 rounded-full glass border border-gold/30 hover:border-gold inline-flex items-center gap-1"
+            >
+              <Download className="w-3.5 h-3.5" /> CSV
+            </button>
+            <button
               onClick={() => setEditMode((v) => !v)}
               className="text-xs px-3 py-1.5 rounded-full glass border border-gold/30 hover:border-gold"
             >
