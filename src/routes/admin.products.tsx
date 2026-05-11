@@ -783,7 +783,8 @@ function AdminProducts() {
               </button>
               <button
                 onClick={save}
-                className="px-5 py-2 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold"
+                disabled={colorErrors.length > 0}
+                className="px-5 py-2 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save
               </button>
