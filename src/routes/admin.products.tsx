@@ -114,13 +114,38 @@ function AdminProducts() {
     setColorsStr((p.colors ?? []).join(", "));
   };
 
-  const selectedColors = colorsStr
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const rawColorTokens = colorsStr.split(",").map((s) => s.trim());
+  const selectedColors = rawColorTokens.filter(Boolean);
+  const COLOR_RE = /^[A-Za-z][A-Za-z0-9 \-/]{0,23}$/;
+  const colorErrors: string[] = (() => {
+    const errs: string[] = [];
+    if (rawColorTokens.some((t, i) => t === "" && i < rawColorTokens.length - 1)) {
+      errs.push("Empty color value — remove the extra comma.");
+    }
+    const seen = new Set<string>();
+    for (const c of selectedColors) {
+      const k = c.toLowerCase();
+      if (seen.has(k)) {
+        errs.push(`Duplicate color "${c}".`);
+        break;
+      }
+      seen.add(k);
+    }
+    for (const c of selectedColors) {
+      if (!COLOR_RE.test(c)) {
+        errs.push(`"${c}" is not a valid color name (letters, numbers, spaces, max 24 chars).`);
+        break;
+      }
+    }
+    return errs;
+  })();
   const addColor = (name: string) => {
-    const exists = selectedColors.some((c) => c.toLowerCase() === name.toLowerCase());
-    if (!exists) setColorsStr([...selectedColors, name].join(", "));
+    const trimmed = name.trim();
+    if (!trimmed) return toast.error("Color name cannot be empty");
+    if (!COLOR_RE.test(trimmed)) return toast.error("Invalid color name");
+    const exists = selectedColors.some((c) => c.toLowerCase() === trimmed.toLowerCase());
+    if (exists) return toast.error(`"${trimmed}" already added`);
+    setColorsStr([...selectedColors, trimmed].join(", "));
   };
   const removeColor = (name: string) => {
     setColorsStr(selectedColors.filter((c) => c.toLowerCase() !== name.toLowerCase()).join(", "));
