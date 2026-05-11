@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatAED } from "@/lib/cart";
 import { toast } from "sonner";
-import { Eye, X, Save, Trash2 } from "lucide-react";
+import { Eye, X, Save, Trash2, Download } from "lucide-react";
+import { ordersToCsv, downloadCsv } from "@/lib/orderCsv";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
