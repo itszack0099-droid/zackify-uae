@@ -673,6 +673,13 @@ function AdminProducts() {
                       ))}
                     </div>
                   )}
+                  {colorErrors.length > 0 && (
+                    <ul className="space-y-1 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg p-2">
+                      {colorErrors.map((err, i) => (
+                        <li key={i}>• {err}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </Field>
               <div className="grid grid-cols-2 gap-3">
