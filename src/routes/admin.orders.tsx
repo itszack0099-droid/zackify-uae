@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatAED } from "@/lib/cart";
 import { toast } from "sonner";
-import { Eye, X, Save, Trash2 } from "lucide-react";
+import { Eye, X, Save, Trash2, Download } from "lucide-react";
+import { ordersToCsv, downloadCsv } from "@/lib/orderCsv";
 
 export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
@@ -108,6 +109,19 @@ function AdminOrders() {
 
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
+  const downloadAll = async () => {
+    if (!filtered.length) return toast.error("No orders to download");
+    try {
+      const csv = await ordersToCsv(filtered);
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadCsv(`orders-${filter}-${stamp}.csv`, csv);
+      toast.success(`Exported ${filtered.length} orders`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to export CSV");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -115,7 +129,13 @@ function AdminOrders() {
           <h1 className="font-display text-3xl">Orders</h1>
           <p className="text-sm text-muted-foreground">{orders.length} total</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <button
+            onClick={downloadAll}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold"
+          >
+            <Download className="w-4 h-4" /> Download CSV ({filtered.length})
+          </button>
           {(["all", ...STATUSES] as const).map((s) => (
             <button
               key={s}
@@ -254,6 +274,22 @@ function OrderModal({ order, onClose, onSaved }: { order: Order; onClose: () => 
             <div className="font-display text-2xl text-gold">{order.order_number}</div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                try {
+                  const csv = await ordersToCsv([order]);
+                  downloadCsv(`order-${order.order_number}.csv`, csv);
+                  toast.success("Order CSV downloaded");
+                } catch (e) {
+                  console.error(e);
+                  toast.error("Failed to export CSV");
+                }
+              }}
+              title="Download this order as CSV"
+              className="text-xs px-3 py-1.5 rounded-full glass border border-gold/30 hover:border-gold inline-flex items-center gap-1"
+            >
+              <Download className="w-3.5 h-3.5" /> CSV
+            </button>
             <button
               onClick={() => setEditMode((v) => !v)}
               className="text-xs px-3 py-1.5 rounded-full glass border border-gold/30 hover:border-gold"

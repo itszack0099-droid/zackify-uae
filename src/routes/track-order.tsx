@@ -257,18 +257,32 @@ function TrackPage() {
               </div>
             </div>
 
-            {/* Return CTA */}
-            {(canRequestReturn || inReturnFlow) && (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex flex-wrap items-center justify-between gap-3">
+            {/* Return CTA — always visible after delivery, auto-disables 3 days after */}
+            {(order.status === "delivered" || inReturnFlow) && (
+              <div
+                className={`rounded-xl border p-4 flex flex-wrap items-center justify-between gap-3 ${
+                  canRequestReturn || inReturnFlow
+                    ? "border-destructive/30 bg-destructive/5"
+                    : "border-muted/40 bg-muted/10"
+                }`}
+              >
                 <div>
-                  <div className="font-semibold flex items-center gap-2 text-destructive">
+                  <div
+                    className={`font-semibold flex items-center gap-2 ${canRequestReturn || inReturnFlow ? "text-destructive" : "text-foreground/70"}`}
+                  >
                     <RefreshCcw className="w-4 h-4" />
-                    {inReturnFlow ? t("track.returnInProgress") : t("track.returnAvailable")}
+                    {inReturnFlow
+                      ? t("track.returnInProgress")
+                      : canRequestReturn
+                        ? t("track.returnAvailable")
+                        : t("track.returnExpired")}
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
                     {inReturnFlow
                       ? t("track.returnInProgressDesc")
-                      : t("track.returnAvailableDesc")}
+                      : canRequestReturn
+                        ? t("track.returnAvailableDesc")
+                        : t("track.returnExpiredDesc")}
                     {canRequestReturn && deadline && (
                       <span className="block mt-1 text-gold">
                         {t("track.eta")}:{" "}
@@ -277,7 +291,7 @@ function TrackPage() {
                     )}
                   </div>
                 </div>
-                {canRequestReturn && (
+                {canRequestReturn ? (
                   <Link
                     to="/return-request"
                     search={{ num: order.order_number }}
@@ -285,20 +299,15 @@ function TrackPage() {
                   >
                     <RefreshCcw className="w-4 h-4" /> {t("track.requestReturn")}
                   </Link>
-                )}
-              </div>
-            )}
-
-            {/* Return expired notice */}
-            {returnExpired && !inReturnFlow && (
-              <div className="rounded-xl border border-muted/40 bg-muted/10 p-4 flex items-start gap-3">
-                <Clock className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <div className="font-semibold text-foreground/80">{t("track.returnExpired")}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {t("track.returnExpiredDesc")}
-                  </div>
-                </div>
+                ) : !inReturnFlow ? (
+                  <button
+                    disabled
+                    title="Return window closed — 3 days after delivery"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-muted text-muted-foreground font-semibold text-sm cursor-not-allowed opacity-70"
+                  >
+                    <Clock className="w-4 h-4" /> {t("track.requestReturn")}
+                  </button>
+                ) : null}
               </div>
             )}
 

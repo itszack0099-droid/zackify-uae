@@ -114,13 +114,38 @@ function AdminProducts() {
     setColorsStr((p.colors ?? []).join(", "));
   };
 
-  const selectedColors = colorsStr
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const rawColorTokens = colorsStr.split(",").map((s) => s.trim());
+  const selectedColors = rawColorTokens.filter(Boolean);
+  const COLOR_RE = /^[A-Za-z][A-Za-z0-9 \-/]{0,23}$/;
+  const colorErrors: string[] = (() => {
+    const errs: string[] = [];
+    if (rawColorTokens.some((t, i) => t === "" && i < rawColorTokens.length - 1)) {
+      errs.push("Empty color value — remove the extra comma.");
+    }
+    const seen = new Set<string>();
+    for (const c of selectedColors) {
+      const k = c.toLowerCase();
+      if (seen.has(k)) {
+        errs.push(`Duplicate color "${c}".`);
+        break;
+      }
+      seen.add(k);
+    }
+    for (const c of selectedColors) {
+      if (!COLOR_RE.test(c)) {
+        errs.push(`"${c}" is not a valid color name (letters, numbers, spaces, max 24 chars).`);
+        break;
+      }
+    }
+    return errs;
+  })();
   const addColor = (name: string) => {
-    const exists = selectedColors.some((c) => c.toLowerCase() === name.toLowerCase());
-    if (!exists) setColorsStr([...selectedColors, name].join(", "));
+    const trimmed = name.trim();
+    if (!trimmed) return toast.error("Color name cannot be empty");
+    if (!COLOR_RE.test(trimmed)) return toast.error("Invalid color name");
+    const exists = selectedColors.some((c) => c.toLowerCase() === trimmed.toLowerCase());
+    if (exists) return toast.error(`"${trimmed}" already added`);
+    setColorsStr([...selectedColors, trimmed].join(", "));
   };
   const removeColor = (name: string) => {
     setColorsStr(selectedColors.filter((c) => c.toLowerCase() !== name.toLowerCase()).join(", "));
@@ -239,6 +264,9 @@ function AdminProducts() {
   const save = async () => {
     if (!editing?.name || !editing.category_slug || !editing.price) {
       return toast.error("Name, category and price are required");
+    }
+    if (colorErrors.length) {
+      return toast.error(colorErrors[0]);
     }
     const imgs = editing.images ?? [];
     const payload = {
@@ -645,6 +673,13 @@ function AdminProducts() {
                       ))}
                     </div>
                   )}
+                  {colorErrors.length > 0 && (
+                    <ul className="space-y-1 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg p-2">
+                      {colorErrors.map((err, i) => (
+                        <li key={i}>• {err}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </Field>
               <div className="grid grid-cols-2 gap-3">
@@ -748,7 +783,8 @@ function AdminProducts() {
               </button>
               <button
                 onClick={save}
-                className="px-5 py-2 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold"
+                disabled={colorErrors.length > 0}
+                className="px-5 py-2 rounded-full bg-gradient-gold text-deep-green font-semibold shadow-gold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save
               </button>
