@@ -109,6 +109,19 @@ function AdminOrders() {
 
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
+  const downloadAll = async () => {
+    if (!filtered.length) return toast.error("No orders to download");
+    try {
+      const csv = await ordersToCsv(filtered);
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadCsv(`orders-${filter}-${stamp}.csv`, csv);
+      toast.success(`Exported ${filtered.length} orders`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to export CSV");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -116,7 +129,13 @@ function AdminOrders() {
           <h1 className="font-display text-3xl">Orders</h1>
           <p className="text-sm text-muted-foreground">{orders.length} total</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <button
+            onClick={downloadAll}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-gold text-deep-green text-sm font-semibold shadow-gold"
+          >
+            <Download className="w-4 h-4" /> Download CSV ({filtered.length})
+          </button>
           {(["all", ...STATUSES] as const).map((s) => (
             <button
               key={s}
