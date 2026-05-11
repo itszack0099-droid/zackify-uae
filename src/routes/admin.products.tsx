@@ -265,6 +265,9 @@ function AdminProducts() {
     if (!editing?.name || !editing.category_slug || !editing.price) {
       return toast.error("Name, category and price are required");
     }
+    if (colorErrors.length) {
+      return toast.error(colorErrors[0]);
+    }
     const imgs = editing.images ?? [];
     const payload = {
       name: editing.name,
