@@ -372,6 +372,7 @@ function AdminProducts() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-gold/30 hover:border-gold text-sm"
           >
             <Printer className="w-4 h-4" /> Print Barcodes
+          </button>
           <CsvProductUpload onDone={load} />
           <button
             onClick={startNew}
