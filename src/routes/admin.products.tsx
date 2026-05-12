@@ -12,11 +12,15 @@ import {
   Search,
   Film,
   Palette,
+  Barcode,
+  Printer,
+  FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 import { squareCompress } from "@/lib/imageCompress";
 import { CsvProductUpload } from "@/components/admin/CsvProductUpload";
+import { downloadBarcodePdf, downloadBarcodePng, printBarcodes } from "@/lib/barcode";
 
 export const Route = createFileRoute("/admin/products")({
   component: AdminProducts,
