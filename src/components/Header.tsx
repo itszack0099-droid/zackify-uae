@@ -163,7 +163,7 @@ export function Header() {
                 rec.lang = "en-US";
                 rec.interimResults = false;
                 rec.maxAlternatives = 1;
-                rec.onresult = (e: SpeechRecognitionEvent) => {
+                rec.onresult = (e: any) => {
                   const text = e.results[0][0].transcript.trim();
                   if (text) {
                     setSearch(text);
