@@ -450,7 +450,23 @@ function AdminProducts() {
                         </span>
                       )}
                     </td>
-                    <td className="pr-4 text-right">
+                    <td className="pr-4 text-right whitespace-nowrap">
+                      <button
+                        disabled={!p.sku}
+                        onClick={() => p.sku && downloadBarcodePng(p.sku, p.name)}
+                        title="Download barcode PNG"
+                        className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold disabled:opacity-30"
+                      >
+                        <Barcode className="w-4 h-4" />
+                      </button>
+                      <button
+                        disabled={!p.sku}
+                        onClick={() => p.sku && downloadBarcodePdf(p.sku, p.name)}
+                        title="Download barcode PDF"
+                        className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold disabled:opacity-30"
+                      >
+                        <FileDown className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => startEdit(p)}
                         className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold"
