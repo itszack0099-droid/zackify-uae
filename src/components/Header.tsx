@@ -153,8 +153,8 @@ export function Header() {
               type="button"
               onClick={() => {
                 const SR =
-                  (window as unknown as { SpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition ||
-                  (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
+                  (window as unknown as { SpeechRecognition?: new () => any }).SpeechRecognition ||
+                  (window as unknown as { webkitSpeechRecognition?: new () => any }).webkitSpeechRecognition;
                 if (!SR) {
                   alert("Voice search isn't supported on this browser.");
                   return;
