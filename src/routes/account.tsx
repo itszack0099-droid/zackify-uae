@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import {
   Mail,
@@ -225,6 +226,36 @@ function AccountPage() {
               {busy ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}
             </button>
           </form>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-gold/15" /></div>
+            <div className="relative flex justify-center"><span className="bg-card px-2 text-[10px] uppercase tracking-wider text-muted-foreground">or</span></div>
+          </div>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              const result = await lovable.auth.signInWithOAuth("apple", {
+                redirect_uri: `${window.location.origin}/account${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`,
+              });
+              if (result.redirected) return;
+              setBusy(false);
+              if (result.error) {
+                toast.error(result.error.message || "Apple sign-in failed");
+                return;
+              }
+              toast.success("Welcome!");
+              navigate({ to: redirect ?? "/", replace: true });
+            }}
+            className="w-full px-6 py-3 rounded-full bg-black text-white font-semibold flex items-center justify-center gap-2 hover:bg-black/90 transition-colors disabled:opacity-60"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16.365 1.43c0 1.14-.43 2.22-1.21 3.04-.84.88-2.2 1.55-3.34 1.46-.13-1.1.4-2.27 1.17-3.06.84-.86 2.27-1.5 3.38-1.44zM20.5 17.36c-.55 1.27-.81 1.83-1.52 2.95-.99 1.55-2.39 3.49-4.13 3.5-1.55.02-1.95-1-4.05-.99-2.1.01-2.54 1.01-4.09.99-1.74-.01-3.07-1.76-4.06-3.32C-.13 16.4-.43 11.4 1.49 8.79c1.36-1.85 3.51-2.94 5.53-2.94 2.06 0 3.36 1.12 5.06 1.12 1.65 0 2.66-1.13 5.04-1.13 1.81 0 3.73.99 5.09 2.69-4.47 2.45-3.74 8.84-1.71 8.83z"/>
+            </svg>
+            Sign in with Apple
+          </button>
 
           <button
             onClick={() => setMode((m) => (m === "signin" ? "signup" : "signin"))}
