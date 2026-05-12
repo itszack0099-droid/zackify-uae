@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { ShoppingBag, Search, Menu, X, Heart, User, Sparkles } from "lucide-react";
+import { ShoppingBag, Search, Menu, X, Heart, User, Sparkles, Mic } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
@@ -146,9 +146,38 @@ export function Header() {
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("header.search")}
-              className="w-full bg-card/50 border border-gold/20 rounded-full pl-11 pr-4 rtl:pl-4 rtl:pr-11 py-2.5 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition"
+              placeholder={`${t("header.search")} — name or SKU`}
+              className="w-full bg-card/50 border border-gold/20 rounded-full pl-11 pr-14 rtl:pl-14 rtl:pr-11 py-2.5 text-sm focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition"
             />
+            <button
+              type="button"
+              onClick={() => {
+                const SR =
+                  (window as unknown as { SpeechRecognition?: new () => any }).SpeechRecognition ||
+                  (window as unknown as { webkitSpeechRecognition?: new () => any }).webkitSpeechRecognition;
+                if (!SR) {
+                  alert("Voice search isn't supported on this browser.");
+                  return;
+                }
+                const rec = new SR();
+                rec.lang = "en-US";
+                rec.interimResults = false;
+                rec.maxAlternatives = 1;
+                rec.onresult = (e: any) => {
+                  const text = e.results[0][0].transcript.trim();
+                  if (text) {
+                    setSearch(text);
+                    window.location.href = `/search?q=${encodeURIComponent(text)}`;
+                  }
+                };
+                rec.onerror = () => {};
+                rec.start();
+              }}
+              aria-label="Voice search"
+              className="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-gold text-deep-green flex items-center justify-center hover:scale-105 transition-transform shadow-gold"
+            >
+              <Mic className="w-4 h-4" />
+            </button>
           </form>
         </div>
       )}

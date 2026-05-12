@@ -12,11 +12,15 @@ import {
   Search,
   Film,
   Palette,
+  Barcode,
+  Printer,
+  FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatAED } from "@/lib/cart";
 import { squareCompress } from "@/lib/imageCompress";
 import { CsvProductUpload } from "@/components/admin/CsvProductUpload";
+import { downloadBarcodePdf, downloadBarcodePng, printBarcodes } from "@/lib/barcode";
 
 export const Route = createFileRoute("/admin/products")({
   component: AdminProducts,
@@ -354,10 +358,21 @@ function AdminProducts() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, SKU…"
-              className="pl-9 pr-3 py-2 rounded-full glass border border-gold/20 text-sm focus:outline-none focus:border-gold w-56"
+              placeholder="Search by name, SKU or barcode…"
+              className="pl-9 pr-3 py-2 rounded-full glass border border-gold/20 text-sm focus:outline-none focus:border-gold w-64"
             />
           </div>
+          <button
+            onClick={() => {
+              const skus = filtered.filter((p) => p.sku).map((p) => ({ sku: p.sku, name: p.name }));
+              if (!skus.length) return toast.error("No products with SKUs to print");
+              printBarcodes(skus);
+            }}
+            title="Print barcodes for visible products"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-gold/30 hover:border-gold text-sm"
+          >
+            <Printer className="w-4 h-4" /> Print Barcodes
+          </button>
           <CsvProductUpload onDone={load} />
           <button
             onClick={startNew}
@@ -435,7 +450,23 @@ function AdminProducts() {
                         </span>
                       )}
                     </td>
-                    <td className="pr-4 text-right">
+                    <td className="pr-4 text-right whitespace-nowrap">
+                      <button
+                        disabled={!p.sku}
+                        onClick={() => p.sku && downloadBarcodePng(p.sku, p.name)}
+                        title="Download barcode PNG"
+                        className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold disabled:opacity-30"
+                      >
+                        <Barcode className="w-4 h-4" />
+                      </button>
+                      <button
+                        disabled={!p.sku}
+                        onClick={() => p.sku && downloadBarcodePdf(p.sku, p.name)}
+                        title="Download barcode PDF"
+                        className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold disabled:opacity-30"
+                      >
+                        <FileDown className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => startEdit(p)}
                         className="p-2 rounded-lg hover:bg-gold/10 hover:text-gold"

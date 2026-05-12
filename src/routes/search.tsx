@@ -19,10 +19,12 @@ function SearchPage() {
   useEffect(() => {
     if (!q) return;
     setLoading(true);
+    const term = q.trim();
+    const like = `%${term}%`;
     supabase
       .from("products")
-      .select("id,name,slug,price,discount_price,image_url,rating,hot_deal")
-      .ilike("name", `%${q}%`)
+      .select("id,name,slug,price,discount_price,image_url,rating,hot_deal,sku")
+      .or(`name.ilike.${like},sku.ilike.${like},description.ilike.${like}`)
       .then(({ data }) => {
         setResults((data ?? []) as ProductLite[]);
         setLoading(false);
