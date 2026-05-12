@@ -358,10 +358,20 @@ function AdminProducts() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, SKU…"
-              className="pl-9 pr-3 py-2 rounded-full glass border border-gold/20 text-sm focus:outline-none focus:border-gold w-56"
+              placeholder="Search by name, SKU or barcode…"
+              className="pl-9 pr-3 py-2 rounded-full glass border border-gold/20 text-sm focus:outline-none focus:border-gold w-64"
             />
           </div>
+          <button
+            onClick={() => {
+              const skus = filtered.filter((p) => p.sku).map((p) => ({ sku: p.sku, name: p.name }));
+              if (!skus.length) return toast.error("No products with SKUs to print");
+              printBarcodes(skus);
+            }}
+            title="Print barcodes for visible products"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-gold/30 hover:border-gold text-sm"
+          >
+            <Printer className="w-4 h-4" /> Print Barcodes
           <CsvProductUpload onDone={load} />
           <button
             onClick={startNew}
