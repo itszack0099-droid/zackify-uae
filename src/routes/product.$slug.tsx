@@ -143,7 +143,7 @@ function ProductPage() {
         </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8 pb-32 lg:pb-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-8 pb-48 lg:pb-10">
         {/* Breadcrumb (desktop only) */}
         <div className="hidden md:flex text-xs text-muted-foreground mb-5 gap-1.5">
           <Link to="/" className="hover:text-gold">
