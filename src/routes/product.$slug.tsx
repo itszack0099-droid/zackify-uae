@@ -124,8 +124,11 @@ function ProductPage() {
 
   return (
     <Layout>
-      {/* Bottom sticky action bar (mobile-app style) */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 glass border-t border-gold/20 px-3 py-2.5 flex items-center gap-2 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+      {/* Bottom sticky action bar (mobile-app style) — sits above the mobile tab bar */}
+      <div
+        className="lg:hidden fixed inset-x-0 z-40 glass border-t border-gold/20 px-3 py-2.5 flex items-center gap-2"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 64px)" }}
+      >
         <button
           onClick={handleAdd}
           className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-gold text-gold font-semibold text-sm hover:bg-gold/10"
