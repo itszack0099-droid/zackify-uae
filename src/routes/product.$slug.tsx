@@ -13,7 +13,6 @@ import {
   Banknote,
   Truck,
   RefreshCcw,
-  ShieldCheck,
   Check,
   Zap,
   ChevronDown,
