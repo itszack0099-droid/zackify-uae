@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
+import { ProductReviews } from "@/components/ProductReviews";
 import { ProductGallery } from "@/components/ProductGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart, formatAED } from "@/lib/cart";
@@ -12,7 +13,6 @@ import {
   Banknote,
   Truck,
   RefreshCcw,
-  ShieldCheck,
   Check,
   Zap,
   ChevronDown,
@@ -322,44 +322,7 @@ function ProductPage() {
         </div>
 
         {/* Reviews */}
-        <section className="mt-10">
-          <h2 className="font-display text-xl mb-5 flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-gold" /> Customer Reviews
-          </h2>
-          <div className="grid md:grid-cols-3 gap-3">
-            {[
-              {
-                name: "Ahmed M.",
-                rating: 5,
-                text: "Premium quality, exactly as shown. Fast delivery to Dubai.",
-              },
-              {
-                name: "Khalid R.",
-                rating: 5,
-                text: "Worth every dirham. The packaging was luxurious.",
-              },
-              {
-                name: "Yousef A.",
-                rating: 4,
-                text: "Great product, will order again. COD made it easy.",
-              },
-            ].map((r) => (
-              <div key={r.name} className="glass rounded-2xl p-4">
-                <div className="flex items-center gap-1 text-gold mb-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3.5 h-3.5 ${i < r.rating ? "fill-gold" : "fill-none opacity-30"}`}
-                      strokeWidth={1.5}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm text-foreground/80 mb-2">"{r.text}"</p>
-                <div className="text-xs text-muted-foreground">— {r.name}, UAE</div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <ProductReviews productId={product.id} />
       </div>
     </Layout>
   );

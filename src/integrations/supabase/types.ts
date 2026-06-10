@@ -176,6 +176,59 @@ export type Database = {
         }
         Relationships: []
       }
+      product_reviews: {
+        Row: {
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          media_types: string[]
+          media_urls: string[]
+          product_id: string
+          rating: number
+          status: string
+          title: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          media_types?: string[]
+          media_urls?: string[]
+          product_id: string
+          rating: number
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          media_types?: string[]
+          media_urls?: string[]
+          product_id?: string
+          rating?: number
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_slug: string
