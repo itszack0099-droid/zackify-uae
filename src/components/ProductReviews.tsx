@@ -61,10 +61,12 @@ export function ProductReviews({ productId }: { productId: string }) {
       list.map(async (r) => {
         if (!r.media_urls?.length) return;
         const { data: s } = await supabase.storage.from(BUCKET).createSignedUrls(r.media_urls, 3600);
-        sigMap[r.id] = (s || []).map((u, i) => ({
-          url: u.signedUrl,
-          type: r.media_types[i] || "image",
-        }));
+        sigMap[r.id] = (s || [])
+          .filter((u) => !!u.signedUrl)
+          .map((u, i) => ({
+            url: u.signedUrl as string,
+            type: r.media_types[i] || "image",
+          }));
       }),
     );
     setSigned(sigMap);
