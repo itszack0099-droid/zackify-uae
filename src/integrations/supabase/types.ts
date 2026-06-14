@@ -407,6 +407,81 @@ export type Database = {
         }
         Relationships: []
       }
+      wc_api_credentials: {
+        Row: {
+          app_name: string
+          callback_url: string | null
+          consumer_key: string
+          consumer_secret: string
+          created_at: string
+          external_user_id: string | null
+          id: string
+          return_url: string | null
+          revoked_at: string | null
+          scope: string
+          store_domain: string | null
+          updated_at: string
+        }
+        Insert: {
+          app_name: string
+          callback_url?: string | null
+          consumer_key: string
+          consumer_secret: string
+          created_at?: string
+          external_user_id?: string | null
+          id?: string
+          return_url?: string | null
+          revoked_at?: string | null
+          scope?: string
+          store_domain?: string | null
+          updated_at?: string
+        }
+        Update: {
+          app_name?: string
+          callback_url?: string | null
+          consumer_key?: string
+          consumer_secret?: string
+          created_at?: string
+          external_user_id?: string | null
+          id?: string
+          return_url?: string | null
+          revoked_at?: string | null
+          scope?: string
+          store_domain?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wc_integration_logs: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message: string | null
+          path: string | null
+          payload: Json | null
+          status: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message?: string | null
+          path?: string | null
+          payload?: Json | null
+          status?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string | null
+          path?: string | null
+          payload?: Json | null
+          status?: number | null
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string
