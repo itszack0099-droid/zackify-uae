@@ -34,7 +34,7 @@ export const Route = createFileRoute("/wp-json/wc/v3/orders")({
           .select("*", { count: "exact" })
           .order("created_at", { ascending: false })
           .range(from, to);
-        if (status && status !== "any") q = q.eq("status", status);
+        if (status && status !== "any") q = q.eq("status", status as never);
         if (after) q = q.gte("created_at", after);
 
         const { data, error, count } = await q;
