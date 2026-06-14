@@ -85,6 +85,7 @@ function AdminLayout() {
             { to: "/admin/products", label: "Products", icon: Package },
             { to: "/admin/reviews", label: "Reviews", icon: Star },
             { to: "/admin/categories", label: "Categories", icon: Tag },
+            { to: "/admin/zambeel", label: "Zambeel", icon: Bell },
           ].map((l) => (
             <Link
               key={l.to}
