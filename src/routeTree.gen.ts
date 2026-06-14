@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WpJsonRouteImport } from './routes/wp-json'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as SearchRouteImport } from './routes/search'
@@ -26,6 +27,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as ApiLatestOrderRouteImport } from './routes/api.latest-order'
+import { Route as AdminZambeelRouteImport } from './routes/admin.zambeel'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminReturnsRouteImport } from './routes/admin.returns'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
@@ -35,8 +37,18 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as AccountOrdersRouteImport } from './routes/account.orders'
 import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
+import { Route as WcAuthV1AuthorizeRouteImport } from './routes/wc-auth.v1.authorize'
 import { Route as ApiPublicLatestOrderRouteImport } from './routes/api.public.latest-order'
+import { Route as WpJsonWcV3ProductsRouteImport } from './routes/wp-json.wc.v3.products'
+import { Route as WpJsonWcV3OrdersRouteImport } from './routes/wp-json.wc.v3.orders'
+import { Route as WpJsonWcV3CustomersRouteImport } from './routes/wp-json.wc.v3.customers'
+import { Route as ApiWcAuthV1GrantRouteImport } from './routes/api.wc-auth.v1.grant'
 
+const WpJsonRoute = WpJsonRouteImport.update({
+  id: '/wp-json',
+  path: '/wp-json',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
@@ -122,6 +134,11 @@ const ApiLatestOrderRoute = ApiLatestOrderRouteImport.update({
   path: '/api/latest-order',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminZambeelRoute = AdminZambeelRouteImport.update({
+  id: '/zambeel',
+  path: '/zambeel',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReviewsRoute = AdminReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
@@ -167,9 +184,34 @@ const AccountAddressesRoute = AccountAddressesRouteImport.update({
   path: '/addresses',
   getParentRoute: () => AccountRoute,
 } as any)
+const WcAuthV1AuthorizeRoute = WcAuthV1AuthorizeRouteImport.update({
+  id: '/wc-auth/v1/authorize',
+  path: '/wc-auth/v1/authorize',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLatestOrderRoute = ApiPublicLatestOrderRouteImport.update({
   id: '/api/public/latest-order',
   path: '/api/public/latest-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WpJsonWcV3ProductsRoute = WpJsonWcV3ProductsRouteImport.update({
+  id: '/wc/v3/products',
+  path: '/wc/v3/products',
+  getParentRoute: () => WpJsonRoute,
+} as any)
+const WpJsonWcV3OrdersRoute = WpJsonWcV3OrdersRouteImport.update({
+  id: '/wc/v3/orders',
+  path: '/wc/v3/orders',
+  getParentRoute: () => WpJsonRoute,
+} as any)
+const WpJsonWcV3CustomersRoute = WpJsonWcV3CustomersRouteImport.update({
+  id: '/wc/v3/customers',
+  path: '/wc/v3/customers',
+  getParentRoute: () => WpJsonRoute,
+} as any)
+const ApiWcAuthV1GrantRoute = ApiWcAuthV1GrantRouteImport.update({
+  id: '/api/wc-auth/v1/grant',
+  path: '/api/wc-auth/v1/grant',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -187,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/wp-json': typeof WpJsonRouteWithChildren
   '/account/addresses': typeof AccountAddressesRoute
   '/account/orders': typeof AccountOrdersRoute
   '/account/profile': typeof AccountProfileRoute
@@ -196,11 +239,17 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRoute
   '/admin/returns': typeof AdminReturnsRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/zambeel': typeof AdminZambeelRoute
   '/api/latest-order': typeof ApiLatestOrderRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/latest-order': typeof ApiPublicLatestOrderRoute
+  '/wc-auth/v1/authorize': typeof WcAuthV1AuthorizeRoute
+  '/api/wc-auth/v1/grant': typeof ApiWcAuthV1GrantRoute
+  '/wp-json/wc/v3/customers': typeof WpJsonWcV3CustomersRoute
+  '/wp-json/wc/v3/orders': typeof WpJsonWcV3OrdersRoute
+  '/wp-json/wc/v3/products': typeof WpJsonWcV3ProductsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -215,6 +264,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/wp-json': typeof WpJsonRouteWithChildren
   '/account/addresses': typeof AccountAddressesRoute
   '/account/orders': typeof AccountOrdersRoute
   '/account/profile': typeof AccountProfileRoute
@@ -224,11 +274,17 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AdminProductsRoute
   '/admin/returns': typeof AdminReturnsRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/zambeel': typeof AdminZambeelRoute
   '/api/latest-order': typeof ApiLatestOrderRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/latest-order': typeof ApiPublicLatestOrderRoute
+  '/wc-auth/v1/authorize': typeof WcAuthV1AuthorizeRoute
+  '/api/wc-auth/v1/grant': typeof ApiWcAuthV1GrantRoute
+  '/wp-json/wc/v3/customers': typeof WpJsonWcV3CustomersRoute
+  '/wp-json/wc/v3/orders': typeof WpJsonWcV3OrdersRoute
+  '/wp-json/wc/v3/products': typeof WpJsonWcV3ProductsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -245,6 +301,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/track-order': typeof TrackOrderRoute
   '/wishlist': typeof WishlistRoute
+  '/wp-json': typeof WpJsonRouteWithChildren
   '/account/addresses': typeof AccountAddressesRoute
   '/account/orders': typeof AccountOrdersRoute
   '/account/profile': typeof AccountProfileRoute
@@ -254,11 +311,17 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRoute
   '/admin/returns': typeof AdminReturnsRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/zambeel': typeof AdminZambeelRoute
   '/api/latest-order': typeof ApiLatestOrderRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/latest-order': typeof ApiPublicLatestOrderRoute
+  '/wc-auth/v1/authorize': typeof WcAuthV1AuthorizeRoute
+  '/api/wc-auth/v1/grant': typeof ApiWcAuthV1GrantRoute
+  '/wp-json/wc/v3/customers': typeof WpJsonWcV3CustomersRoute
+  '/wp-json/wc/v3/orders': typeof WpJsonWcV3OrdersRoute
+  '/wp-json/wc/v3/products': typeof WpJsonWcV3ProductsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -276,6 +339,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/track-order'
     | '/wishlist'
+    | '/wp-json'
     | '/account/addresses'
     | '/account/orders'
     | '/account/profile'
@@ -285,11 +349,17 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/returns'
     | '/admin/reviews'
+    | '/admin/zambeel'
     | '/api/latest-order'
     | '/category/$slug'
     | '/product/$slug'
     | '/admin/'
     | '/api/public/latest-order'
+    | '/wc-auth/v1/authorize'
+    | '/api/wc-auth/v1/grant'
+    | '/wp-json/wc/v3/customers'
+    | '/wp-json/wc/v3/orders'
+    | '/wp-json/wc/v3/products'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -304,6 +374,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/track-order'
     | '/wishlist'
+    | '/wp-json'
     | '/account/addresses'
     | '/account/orders'
     | '/account/profile'
@@ -313,11 +384,17 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/returns'
     | '/admin/reviews'
+    | '/admin/zambeel'
     | '/api/latest-order'
     | '/category/$slug'
     | '/product/$slug'
     | '/admin'
     | '/api/public/latest-order'
+    | '/wc-auth/v1/authorize'
+    | '/api/wc-auth/v1/grant'
+    | '/wp-json/wc/v3/customers'
+    | '/wp-json/wc/v3/orders'
+    | '/wp-json/wc/v3/products'
   id:
     | '__root__'
     | '/'
@@ -333,6 +410,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/track-order'
     | '/wishlist'
+    | '/wp-json'
     | '/account/addresses'
     | '/account/orders'
     | '/account/profile'
@@ -342,11 +420,17 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/returns'
     | '/admin/reviews'
+    | '/admin/zambeel'
     | '/api/latest-order'
     | '/category/$slug'
     | '/product/$slug'
     | '/admin/'
     | '/api/public/latest-order'
+    | '/wc-auth/v1/authorize'
+    | '/api/wc-auth/v1/grant'
+    | '/wp-json/wc/v3/customers'
+    | '/wp-json/wc/v3/orders'
+    | '/wp-json/wc/v3/products'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -363,14 +447,24 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   TrackOrderRoute: typeof TrackOrderRoute
   WishlistRoute: typeof WishlistRoute
+  WpJsonRoute: typeof WpJsonRouteWithChildren
   ApiLatestOrderRoute: typeof ApiLatestOrderRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
   ApiPublicLatestOrderRoute: typeof ApiPublicLatestOrderRoute
+  WcAuthV1AuthorizeRoute: typeof WcAuthV1AuthorizeRoute
+  ApiWcAuthV1GrantRoute: typeof ApiWcAuthV1GrantRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wp-json': {
+      id: '/wp-json'
+      path: '/wp-json'
+      fullPath: '/wp-json'
+      preLoaderRoute: typeof WpJsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wishlist': {
       id: '/wishlist'
       path: '/wishlist'
@@ -490,6 +584,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLatestOrderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/zambeel': {
+      id: '/admin/zambeel'
+      path: '/zambeel'
+      fullPath: '/admin/zambeel'
+      preLoaderRoute: typeof AdminZambeelRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reviews': {
       id: '/admin/reviews'
       path: '/reviews'
@@ -553,11 +654,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountAddressesRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/wc-auth/v1/authorize': {
+      id: '/wc-auth/v1/authorize'
+      path: '/wc-auth/v1/authorize'
+      fullPath: '/wc-auth/v1/authorize'
+      preLoaderRoute: typeof WcAuthV1AuthorizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/latest-order': {
       id: '/api/public/latest-order'
       path: '/api/public/latest-order'
       fullPath: '/api/public/latest-order'
       preLoaderRoute: typeof ApiPublicLatestOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wp-json/wc/v3/products': {
+      id: '/wp-json/wc/v3/products'
+      path: '/wc/v3/products'
+      fullPath: '/wp-json/wc/v3/products'
+      preLoaderRoute: typeof WpJsonWcV3ProductsRouteImport
+      parentRoute: typeof WpJsonRoute
+    }
+    '/wp-json/wc/v3/orders': {
+      id: '/wp-json/wc/v3/orders'
+      path: '/wc/v3/orders'
+      fullPath: '/wp-json/wc/v3/orders'
+      preLoaderRoute: typeof WpJsonWcV3OrdersRouteImport
+      parentRoute: typeof WpJsonRoute
+    }
+    '/wp-json/wc/v3/customers': {
+      id: '/wp-json/wc/v3/customers'
+      path: '/wc/v3/customers'
+      fullPath: '/wp-json/wc/v3/customers'
+      preLoaderRoute: typeof WpJsonWcV3CustomersRouteImport
+      parentRoute: typeof WpJsonRoute
+    }
+    '/api/wc-auth/v1/grant': {
+      id: '/api/wc-auth/v1/grant'
+      path: '/api/wc-auth/v1/grant'
+      fullPath: '/api/wc-auth/v1/grant'
+      preLoaderRoute: typeof ApiWcAuthV1GrantRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -585,6 +721,7 @@ interface AdminRouteChildren {
   AdminProductsRoute: typeof AdminProductsRoute
   AdminReturnsRoute: typeof AdminReturnsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminZambeelRoute: typeof AdminZambeelRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -595,10 +732,26 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProductsRoute: AdminProductsRoute,
   AdminReturnsRoute: AdminReturnsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
+  AdminZambeelRoute: AdminZambeelRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface WpJsonRouteChildren {
+  WpJsonWcV3CustomersRoute: typeof WpJsonWcV3CustomersRoute
+  WpJsonWcV3OrdersRoute: typeof WpJsonWcV3OrdersRoute
+  WpJsonWcV3ProductsRoute: typeof WpJsonWcV3ProductsRoute
+}
+
+const WpJsonRouteChildren: WpJsonRouteChildren = {
+  WpJsonWcV3CustomersRoute: WpJsonWcV3CustomersRoute,
+  WpJsonWcV3OrdersRoute: WpJsonWcV3OrdersRoute,
+  WpJsonWcV3ProductsRoute: WpJsonWcV3ProductsRoute,
+}
+
+const WpJsonRouteWithChildren =
+  WpJsonRoute._addFileChildren(WpJsonRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -614,10 +767,13 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   TrackOrderRoute: TrackOrderRoute,
   WishlistRoute: WishlistRoute,
+  WpJsonRoute: WpJsonRouteWithChildren,
   ApiLatestOrderRoute: ApiLatestOrderRoute,
   CategorySlugRoute: CategorySlugRoute,
   ProductSlugRoute: ProductSlugRoute,
   ApiPublicLatestOrderRoute: ApiPublicLatestOrderRoute,
+  WcAuthV1AuthorizeRoute: WcAuthV1AuthorizeRoute,
+  ApiWcAuthV1GrantRoute: ApiWcAuthV1GrantRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
